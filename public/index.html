@@ -5,9 +5,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description"
-    content="EventPulse AI — Smart event companion powered by Google Gemini. Navigate sessions, get AI answers, and plan your TechSurge 2026 schedule." />
+    content="EventPulse AI — AI-powered fan experience for IPL 2026 at M. Chinnaswamy Stadium. Real-time crowd density, queue wait times, and smart routing for 28,000+ fans." />
   <meta name="theme-color" content="#03080f" />
-  <title>EventPulse AI | TechSurge 2026</title>
+  <title>EventPulse AI | IPL 2026 — RCB vs MI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -1156,8 +1156,8 @@
         <span class="logo-text">Event<span>Pulse</span> AI</span>
       </a>
       <div class="header-event" aria-live="polite">
-        <strong id="event-name">TechSurge 2026</strong>
-        <span id="event-venue">NIMHANS Convention Centre, Bengaluru</span>
+        <strong id="event-name">IPL 2026 — RCB vs MI</strong>
+        <span id="event-venue">M. Chinnaswamy Stadium, Bengaluru</span>
       </div>
     </div>
   </header>
@@ -1188,13 +1188,12 @@
     <section class="panel active" id="panel-home" role="tabpanel" aria-label="Home">
 
       <div class="hero">
-        <h1>Dev<span>Fest</span> Hubballi 2026</h1>
-        <p class="hero-tagline">Building the Agentic Future with Google AI</p>
+        <h1>IPL 2026 — <span>RCB vs MI</span></h1>
+        <p class="hero-tagline">AI-Powered Fan Experience at Chinnaswamy Stadium</p>
         <div class="hero-meta">
-          <div class="hero-chip"><span class="chip-icon" aria-hidden="true">📅</span> May 10–11, 2026</div>
-          <div class="hero-chip"><span class="chip-icon" aria-hidden="true">📍</span> BVB College of Engineering,
-            Hubballi</div>
-          <div class="hero-chip"><span class="chip-icon" aria-hidden="true">👥</span> 1200+ Attendees</div>
+          <div class="hero-chip"><span class="chip-icon" aria-hidden="true">📅</span> May 10, 2026 · 19:00 IST</div>
+          <div class="hero-chip"><span class="chip-icon" aria-hidden="true">📍</span> M. Chinnaswamy Stadium, Bengaluru</div>
+          <div class="hero-chip"><span class="chip-icon" aria-hidden="true">👥</span> 28,000+ Fans</div>
         </div>
         <div class="countdown" role="timer" aria-label="Countdown to event">
           <div class="count-box"><span class="count-num" id="cd-days">--</span><span class="count-lbl">Days</span></div>
@@ -1206,44 +1205,47 @@
 
       <div class="stats-row" role="list" aria-label="Event statistics">
         <div class="stat-card" role="listitem">
-          <div class="stat-num">12</div>
-          <div class="stat-lbl">Sessions</div>
-        </div>
-        <div class="stat-card" role="listitem">
-          <div class="stat-num">6</div>
-          <div class="stat-lbl">Speakers</div>
+          <div class="stat-num">5</div>
+          <div class="stat-lbl">Zones</div>
         </div>
         <div class="stat-card" role="listitem">
           <div class="stat-num">4</div>
-          <div class="stat-lbl">Tracks</div>
+          <div class="stat-lbl">Entry Gates</div>
         </div>
         <div class="stat-card" role="listitem">
-          <div class="stat-num">2</div>
-          <div class="stat-lbl">Days</div>
+          <div class="stat-num">10</div>
+          <div class="stat-lbl">Queue Points</div>
+        </div>
+        <div class="stat-card" role="listitem">
+          <div class="stat-num">28K+</div>
+          <div class="stat-lbl">Fans</div>
         </div>
       </div>
 
-      <h2 class="section-title">Featured Speakers</h2>
-      <div class="speakers-grid" id="speakers-grid" role="list" aria-label="Speakers"></div>
+      <h2 class="section-title">Live Zone Status</h2>
+      <div id="zone-status-grid" class="speakers-grid" role="list" aria-label="Zone crowd status" aria-live="polite">
+        <div class="loading-state">Loading zone status…</div>
+      </div>
+
+      <h2 class="section-title" style="margin-top:2rem;">Teams & Officials</h2>
+      <div class="speakers-grid" id="speakers-grid" role="list" aria-label="Teams and officials"></div>
     </section>
 
     <!-- SCHEDULE ─────────────────────────────────────────── -->
     <section class="panel" id="panel-schedule" role="tabpanel" aria-label="Event schedule">
-      <h2 class="section-title">Full Schedule</h2>
+      <h2 class="section-title">Match Day Schedule</h2>
 
       <div class="filter-bar" role="group" aria-label="Filter sessions">
         <div class="filter-group" role="group" aria-label="Filter by day">
-          <button class="filter-btn active" data-filter="day" data-val="all" aria-pressed="true">All Days</button>
-          <button class="filter-btn" data-filter="day" data-val="1" aria-pressed="false">Day 1 · Apr 25</button>
-          <button class="filter-btn" data-filter="day" data-val="2" aria-pressed="false">Day 2 · Apr 26</button>
+          <button class="filter-btn active" data-filter="day" data-val="all" aria-pressed="true">All Events</button>
+          <button class="filter-btn" data-filter="day" data-val="1" aria-pressed="false">May 10</button>
         </div>
         <div class="filter-group" role="group" aria-label="Filter by track">
-          <button class="filter-btn" data-filter="track" data-val="all" aria-pressed="false">All Tracks</button>
-          <button class="filter-btn" data-filter="track" data-val="Keynote" aria-pressed="false">Keynote</button>
-          <button class="filter-btn" data-filter="track" data-val="AI & ML" aria-pressed="false">AI & ML</button>
-          <button class="filter-btn" data-filter="track" data-val="Web & Mobile" aria-pressed="false">Web &
-            Mobile</button>
-          <button class="filter-btn" data-filter="track" data-val="Cloud" aria-pressed="false">Cloud</button>
+          <button class="filter-btn" data-filter="track" data-val="all" aria-pressed="false">All</button>
+          <button class="filter-btn" data-filter="track" data-val="Match" aria-pressed="false">Match</button>
+          <button class="filter-btn" data-filter="track" data-val="Fan Experience" aria-pressed="false">Fan Zone</button>
+          <button class="filter-btn" data-filter="track" data-val="Entry & Exit" aria-pressed="false">Entry &amp; Exit</button>
+          <button class="filter-btn" data-filter="track" data-val="Break" aria-pressed="false">Break</button>
         </div>
       </div>
 
@@ -1254,32 +1256,32 @@
 
     <!-- VENUE ────────────────────────────────────────────── -->
     <section class="panel" id="panel-venue" role="tabpanel" aria-label="Venue information">
-      <h2 class="section-title">Venue & Halls</h2>
+      <h2 class="section-title">Venue & Zone Guide</h2>
 
       <div class="venue-grid">
         <div>
           <div class="map-frame">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3848.6!2d75.1240!3d15.3647!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bb8d7d3f3c3c3c3%3A0x1234567890abcdef!2sBVB%20College%20of%20Engineering%20and%20Technology%2C%20Hubballi!5e0!3m2!1sen!2sin!4v1713000000000!5m2!1sen!2sin"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3887.9!2d77.5946!3d12.9787!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae1670c9b44e6d%3A0xf8dfc3e8517e4fe0!2sM.%20Chinnaswamy%20Stadium!5e0!3m2!1sen!2sin!4v1713000000000!5m2!1sen!2sin"
               allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-              title="BVB College of Engineering and Technology, Hubballi"
-              aria-label="BVB College of Engineering and Technology location">
+              title="M. Chinnaswamy Stadium, Bengaluru"
+              aria-label="M. Chinnaswamy Stadium location on map">
             </iframe>
           </div>
           <div style="margin-top:1rem;" class="card">
             <p style="font-size:0.85rem;color:var(--text-2);line-height:1.6;">
-              <strong style="color:var(--text)">BVB College of Engineering and Technology</strong><br>
-              Vidyanagar, Hubballi, Karnataka 580031<br><br>
-              <span style="color:var(--cyan)">🚌</span> Nearest Bus Stop: Vidyanagar Bus Stand (~300m)<br>
-              <span style="color:var(--cyan)">🚗</span> Parking: Available on campus (Main Gate entry)<br>
-              <span style="color:var(--cyan)">🚕</span> Drop-off: Main Gate, Vidyanagar entrance
+              <strong style="color:var(--text)">M. Chinnaswamy Stadium</strong><br>
+              MG Road, Cubbon Park, Bengaluru, Karnataka 560001<br><br>
+              <span style="color:var(--cyan)">🚇</span> Metro: Cubbon Park Station (~2 min walk from Gate B)<br>
+              <span style="color:var(--cyan)">🚗</span> Parking: Zone A (East) open · Zones B &amp; C full<br>
+              <span style="color:var(--cyan)">🚕</span> Drop-off: Gate B, MG Road entrance (recommended)
             </p>
           </div>
         </div>
 
         <div>
-          <h3 class="section-title" style="font-size:0.9rem;margin-bottom:0.75rem;">Hall Guide</h3>
-          <div class="halls-list" id="halls-list" role="list" aria-label="Event halls"></div>
+          <h3 class="section-title" style="font-size:0.9rem;margin-bottom:0.75rem;">Zone Guide</h3>
+          <div class="halls-list" id="halls-list" role="list" aria-label="Stadium zones"></div>
         </div>
       </div>
     </section>
@@ -1303,20 +1305,21 @@
               <div class="msg bot" role="article" aria-label="AI message">
                 <div class="msg-avatar" aria-hidden="true">EP</div>
                 <div class="msg-bubble">
-                  👋 Hi! I'm <strong>EventPulse AI</strong>, your personal guide to TechSurge 2026.<br><br>
+                  👋 Hi! I'm <strong>EventPulse AI</strong>, your smart guide for IPL 2026 at Chinnaswamy Stadium.<br><br>
                   I can help you with:<br>
-                  • Finding sessions by topic or time<br>
-                  • Locating halls and speakers<br>
-                  • Planning your personal schedule<br>
-                  • Answering anything about the event<br><br>
-                  What would you like to know?
+                  • Which gate has the shortest entry queue right now<br>
+                  • Food court wait times and recommendations<br>
+                  • Crowd density per zone — where to go &amp; avoid<br>
+                  • Match schedule, teams, and fan zone activities<br>
+                  • Parking, metro, and transport info<br><br>
+                  What do you need?
                 </div>
               </div>
             </div>
 
             <div class="chat-input-area">
               <label for="chat-input" class="sr-only">Type your message</label>
-              <textarea id="chat-input" rows="1" placeholder="Ask me about sessions, speakers, halls…"
+              <textarea id="chat-input" rows="1" placeholder="Ask about queues, crowd, gates, match schedule…"
                 aria-label="Message input" maxlength="1000">
               </textarea>
               <button id="send-btn" aria-label="Send message" title="Send (Enter)">
@@ -1333,21 +1336,20 @@
         <div class="chat-sidebar">
           <div class="sidebar-card">
             <div class="sidebar-title">💡 Quick Questions</div>
-            <button class="quick-btn" data-q="Which sessions are happening on Day 1?">Day 1 sessions?</button>
-            <button class="quick-btn" data-q="Which AI and ML talks can I attend?">AI & ML talks?</button>
-            <button class="quick-btn" data-q="Where is Hall A located?">Where is Hall A?</button>
-            <button class="quick-btn" data-q="What sessions are at 10:30 AM?">Sessions at 10:30?</button>
-            <button class="quick-btn" data-q="Who is speaking about Cloud Run?">Cloud Run speaker?</button>
-            <button class="quick-btn" data-q="Give me a recommended schedule for someone interested in AI.">Recommended
-              AI track?</button>
+            <button class="quick-btn" data-q="Which gate has the shortest queue right now?">Shortest queue gate?</button>
+            <button class="quick-btn" data-q="Which food court has the least wait time?">Best food court?</button>
+            <button class="quick-btn" data-q="Which zones should I avoid due to high crowd density?">Avoid which zones?</button>
+            <button class="quick-btn" data-q="What is the match schedule for today?">Match schedule?</button>
+            <button class="quick-btn" data-q="How do I get to the stadium by metro?">Metro directions?</button>
+            <button class="quick-btn" data-q="What is the best time to visit food courts during the match?">Best time for food?</button>
           </div>
           <div class="sidebar-card">
-            <div class="sidebar-title">📊 Event Stats</div>
+            <div class="sidebar-title">📊 Stadium Stats</div>
             <div style="font-family:var(--font-m);font-size:0.72rem;color:var(--text-2);line-height:2;">
-              <div>Sessions: <span style="color:var(--cyan)">12</span></div>
-              <div>Speakers: <span style="color:var(--cyan)">6</span></div>
-              <div>Tracks: <span style="color:var(--cyan)">4</span></div>
-              <div>Venue: <span style="color:var(--cyan)">4 halls</span></div>
+              <div>Zones: <span style="color:var(--cyan)">5</span></div>
+              <div>Entry Gates: <span style="color:var(--cyan)">4</span></div>
+              <div>Queue Points: <span style="color:var(--cyan)">10</span></div>
+              <div>Capacity: <span style="color:var(--cyan)">28,500</span></div>
             </div>
           </div>
         </div>
@@ -1392,7 +1394,7 @@
 
     /* ── Countdown Timer ────────────────────────────────────── */
     function updateCountdown() {
-      const target = new Date('2026-04-25T09:00:00+05:30');
+      const target = new Date('2026-05-10T19:00:00+05:30');
       const now = new Date();
       const diff = target - now;
       if (diff <= 0) {
@@ -1524,25 +1526,55 @@
       });
     });
 
-    /* ── Venue / Halls ──────────────────────────────────────── */
-    const HALL_COLORS = { main: '#ffb627', 'hall-a': '#8b7cf8', 'hall-b': '#1de9b6', 'hall-c': '#06d6f5' };
+    /* ── Venue / Zones ──────────────────────────────────────── */
+    const ZONE_COLORS = { 'gate-a': '#ffb627', 'gate-b': '#1de9b6', 'gate-c': '#ff4757', 'gate-d': '#8b7cf8', 'parking': '#06d6f5' };
+    const DENSITY_COLORS = { low: '#1de9b6', moderate: '#ffb627', high: '#ff4757' };
 
     function renderHalls() {
-      fetch('/api/event').then(r => r.json()).then(data => {
+      fetch('/api/crowd').then(r => r.json()).then(data => {
         const list = document.getElementById('halls-list');
-        list.innerHTML = data.halls.map(h => `
+        list.innerHTML = data.zones.map(z => `
           <div class="hall-item" role="listitem">
-            <div class="hall-dot" style="background:${HALL_COLORS[h.id] || '#06d6f5'}" aria-hidden="true"></div>
+            <div class="hall-dot" style="background:${DENSITY_COLORS[z.densityLevel]}" aria-hidden="true"></div>
             <div class="hall-info">
-              <div class="hall-name">${escHtml(h.name)}</div>
-              <div class="hall-detail">${escHtml(h.floor)}</div>
+              <div class="hall-name">${escHtml(z.name)}</div>
+              <div class="hall-detail">${escHtml(z.facilities)}</div>
             </div>
-            <div class="hall-cap" aria-label="${h.capacity} seats capacity">
-              <span>${h.capacity}</span>seats
+            <div class="hall-cap" aria-label="${z.occupancy}% occupancy">
+              <span>${z.occupancy}%</span>full
             </div>
           </div>
         `).join('');
       }).catch(() => { });
+    }
+
+    async function loadZoneStatus() {
+      const grid = document.getElementById('zone-status-grid');
+      try {
+        const res = await fetch('/api/crowd');
+        const data = await res.json();
+        grid.innerHTML = data.zones.map(z => {
+          const color = DENSITY_COLORS[z.densityLevel];
+          const badge = z.densityLevel === 'high' ? 'AVOID' : z.densityLevel === 'moderate' ? 'MODERATE' : 'OPEN';
+          return `
+          <div class="speaker-card" role="listitem" style="flex-direction:column;align-items:flex-start;gap:0.5rem;">
+            <div style="display:flex;align-items:center;gap:0.6rem;width:100%;">
+              <div class="avatar" style="background:${color};color:#03080f;font-size:0.6rem;" aria-hidden="true">${z.occupancy}%</div>
+              <div style="flex:1;">
+                <div class="speaker-name">${escHtml(z.name)}</div>
+                <div class="speaker-role">${escHtml(z.facilities)}</div>
+              </div>
+              <div style="font-size:0.65rem;font-weight:700;color:${color};font-family:var(--font-m);letter-spacing:0.05em;">${badge}</div>
+            </div>
+            <div style="width:100%;background:var(--bg-3);border-radius:4px;height:6px;overflow:hidden;">
+              <div style="width:${z.occupancy}%;height:100%;background:${color};border-radius:4px;transition:width 0.6s ease;"></div>
+            </div>
+            <div style="font-size:0.7rem;color:var(--text-2);">${escHtml(z.recommendation)}</div>
+          </div>`;
+        }).join('');
+      } catch (e) {
+        grid.innerHTML = '<div class="error-state">Failed to load zone status.</div>';
+      }
     }
 
     /* ── Announcements ──────────────────────────────────────── */
@@ -1682,6 +1714,8 @@
 
     /* ── Init ───────────────────────────────────────────────── */
     loadEventInfo();
+    loadZoneStatus();
+    loadSchedule();
   </script>
 
 </body>
