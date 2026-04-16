@@ -21,8 +21,8 @@
 
 EventPulse AI is a smart stadium companion web app demonstrated for **IPL 2026 — RCB vs MI at M. Chinnaswamy Stadium, Bengaluru**. It helps fans:
 
-- **Live Zone Status** — Real-time crowd density per stadium zone with color-coded indicators (green/amber/red) and progress bars
-- **Queue Wait Times** — Live wait estimates for all 10 queue points: food courts, entry gates, restrooms, and merchandise
+- **Live Zone Status** — Crowd density per stadium zone updates every 30 seconds with color-coded indicators (green/amber/red) and progress bars
+- **Queue Wait Times** — Wait estimates for all 10 queue points auto-refresh every 30 seconds: food courts, entry gates, restrooms, and merchandise
 - **AI Chat Assistant** — Ask natural questions like *"Which gate has the shortest queue?"* or *"When is the best time to grab food?"* — powered by Google Gemini
 - **Smart Routing** — AI proactively warns about high-density zones and recommends alternatives
 - **Match Schedule** — Full match day timeline from gates-open to post-match phased exit
@@ -59,7 +59,7 @@ EventPulse AI is a smart stadium companion web app demonstrated for **IPL 2026 �
 - **API key stays server-side** — Gemini API key is never exposed to the browser
 - **Single-file frontend** — no build step, fast load, easy to audit
 - **Demo mode** — app works without an API key for evaluation purposes
-- **Crowd data is structured JSON** — designed to be replaced with real sensor/IoT feeds in production
+- **Simulated live crowd data** — server fluctuates occupancy (±3%) and queue wait times (±2 min) every 30 seconds; frontend auto-refreshes without a page reload — designed to be swapped for real IoT/sensor feeds in production
 - **AI prompt includes live context** — crowd density and queue wait times are injected into every Gemini request so the AI gives accurate, real-time answers
 
 ---
@@ -156,7 +156,7 @@ The test suite covers 29 tests across all endpoints:
 
 ## Assumptions Made
 
-1. **Simulated live data** — Crowd density and queue wait times are realistic mock data representing a live match scenario. In production, these would come from IoT sensors, turnstile counters, or stadium management systems.
+1. **Simulated live data** — Crowd density and queue wait times are seeded from realistic mock values and fluctuate every 30 seconds on the server to simulate real-time sensor feeds. In production, these would come from IoT sensors, turnstile counters, or stadium management systems.
 2. **IST timezone** — All match times are in Indian Standard Time (UTC+5:30). Calendar links are converted to UTC.
 3. **Single branch** — All development is on `main` as required by hackathon rules.
 4. **No authentication** — The app is public (no login required), appropriate for a stadium fan companion app.
