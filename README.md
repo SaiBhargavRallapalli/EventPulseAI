@@ -68,10 +68,14 @@ EventPulse AI is a smart stadium companion web app demonstrated for **IPL 2026 �
 
 | Service | How It's Used |
 |---|---|
-| **Google Gemini (gemini-flash)** | Powers the AI chat assistant with full stadium context including live crowd density and queue wait times |
+| **Google Gemini (gemini-flash)** | Powers the AI chat assistant with live crowd density and queue context injected into every prompt |
+| **Firebase Admin + Firestore** | Persists crowd density snapshots every 30 seconds for historical analysis and real-time sync |
+| **Google Analytics (gtag.js)** | Tracks page views, tab navigation, and AI chat engagement events |
+| **Google Cloud Translation (via Gemini)** | `/api/translate` endpoint for multilingual stadium announcements (Hindi, Kannada, etc.) |
 | **Google Maps Embed** | Interactive venue map showing M. Chinnaswamy Stadium with zone navigation |
 | **Google Calendar** | Deep-link URLs to add any match day event to attendee's calendar |
-| **Google Cloud Run** | Hosts the containerised Node.js app — serverless, auto-scaling |
+| **Google Fonts** | Syne, Figtree, and JetBrains Mono typefaces loaded via Google Fonts API |
+| **Google Cloud Run** | Hosts the containerised Node.js app — serverless, auto-scaling, with automatic Firebase auth |
 
 ---
 
@@ -179,11 +183,14 @@ The test suite covers 29 tests across all endpoints:
 ## Built With
 
 - **Google Antigravity** — AI-assisted development environment
-- Node.js + Express — Backend server
+- **Firebase Admin + Firestore** — Cloud-native data persistence
+- **Google Analytics** — Usage tracking and engagement metrics
+- **Google Gemini (gemini-flash)** — AI chat + multilingual translation
+- **Google Maps + Calendar + Fonts** — Venue, scheduling, and typography
+- **Google Cloud Run** — Serverless auto-scaling deployment
+- Node.js + Express + compression — Backend server
 - Vanilla JS/CSS/HTML — No-framework frontend
-- Google Gemini (gemini-flash) — AI intelligence
-- Google Cloud Run — Serverless deployment
-- Jest + Supertest — Testing
+- Jest + Supertest — 29 automated tests
 
 ---
 
