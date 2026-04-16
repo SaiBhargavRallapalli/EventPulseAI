@@ -8,6 +8,14 @@
     content="EventPulse AI — AI-powered fan experience for IPL 2026 at M. Chinnaswamy Stadium. Real-time crowd density, queue wait times, and smart routing for 28,000+ fans." />
   <meta name="theme-color" content="#03080f" />
   <title>EventPulse AI | IPL 2026 — RCB vs MI</title>
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-EP2026PULSE"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-EP2026PULSE');
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -1386,6 +1394,7 @@
         btn.classList.add('active');
         btn.setAttribute('aria-selected', 'true');
         document.getElementById('panel-' + target).classList.add('active');
+        if (typeof gtag === 'function') gtag('event', 'tab_view', { event_category: 'navigation', event_label: target });
         if (target === 'schedule' && allSessions.length === 0) loadSchedule();
         if (target === 'announcements') loadAnnouncements();
         if (target === 'venue') renderHalls();
@@ -1454,15 +1463,15 @@
     }
 
     function trackClass(track) {
-      if (track === 'Keynote') return 'track-keynote';
-      if (track === 'AI & ML') return 'track-ai';
-      if (track.startsWith('Web')) return 'track-web';
-      if (track === 'Cloud') return 'track-cloud';
+      if (track === 'Match') return 'track-keynote';
+      if (track === 'Fan Experience') return 'track-ai';
+      if (track === 'Entry & Exit') return 'track-web';
+      if (track === 'Break') return 'track-cloud';
       return 'track-cloud';
     }
 
     function calUrl(s) {
-      const venue = encodeURIComponent('NIMHANS Convention Centre, Bengaluru');
+      const venue = encodeURIComponent('M. Chinnaswamy Stadium, Bengaluru');
       const details = encodeURIComponent(`${s.description}\n\nSpeaker: ${s.speaker}\nHall: ${s.hall}`);
       const title = encodeURIComponent(s.title);
       return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${s.calStart}/${s.calEnd}&details=${details}&location=${venue}`;
@@ -1683,6 +1692,7 @@
           appendMsg('bot', data.reply);
           chatHistory.push({ role: 'user', text: trimmed });
           chatHistory.push({ role: 'model', text: data.reply });
+          if (typeof gtag === 'function') gtag('event', 'ai_chat', { event_category: 'engagement', event_label: trimmed.slice(0, 50) });
           if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
         }
       } catch (e) {
