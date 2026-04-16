@@ -1716,6 +1716,7 @@
     loadEventInfo();
     loadZoneStatus();
     loadSchedule();
+    setInterval(loadZoneStatus, 30000); // refresh crowd data every 30 s
   </script>
 
 </body>
