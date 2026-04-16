@@ -3,22 +3,35 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 require('dotenv').config();
 
+// ── Firebase Admin + Firestore (Google Cloud) ─────────────────────────────
+let db;
+try {
+  const admin = require('firebase-admin');
+  admin.initializeApp({ projectId: process.env.GOOGLE_CLOUD_PROJECT || 'eventpulse-ai' });
+  db = admin.firestore();
+  console.log('Firebase Firestore: connected');
+} catch (e) {
+  console.log('Firebase Firestore: not configured, using in-memory data');
+}
+
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+app.use(compression()); // gzip responses for efficiency
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", 'https://www.googletagmanager.com'],
       styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       fontSrc: ["'self'", 'https://fonts.gstatic.com'],
       frameSrc: ['https://www.google.com'],
-      connectSrc: ["'self'"],
+      connectSrc: ["'self'", 'https://www.google-analytics.com'],
       imgSrc: ["'self'", 'data:', 'https:'],
     },
   },
@@ -87,16 +100,24 @@ let liveQueues = EVENT.queues.map(q => ({ ...q }));
 
 function fluctuateCrowd() {
   liveZones = liveZones.map(z => {
-    const delta = Math.floor(Math.random() * 7) - 3; // -3 to +3
+    const delta = Math.floor(Math.random() * 7) - 3;
     const occupancy = Math.min(99, Math.max(10, z.occupancy + delta));
     return { ...z, occupancy };
   });
   liveQueues = liveQueues.map(q => {
-    const delta = Math.floor(Math.random() * 5) - 2; // -2 to +2
+    const delta = Math.floor(Math.random() * 5) - 2;
     const waitMinutes = Math.min(40, Math.max(1, q.waitMinutes + delta));
     const status = waitMinutes <= 5 ? 'low' : waitMinutes <= 15 ? 'moderate' : 'high';
     return { ...q, waitMinutes, status };
   });
+  // Persist snapshot to Firebase Firestore (if available)
+  if (db) {
+    db.collection('crowd-snapshots').add({
+      zones: liveZones.map(z => ({ id: z.id, name: z.name, occupancy: z.occupancy })),
+      queues: liveQueues.map(q => ({ id: q.id, location: q.location, waitMinutes: q.waitMinutes, status: q.status })),
+      timestamp: new Date(),
+    }).catch(() => {});
+  }
 }
 setInterval(fluctuateCrowd, 30000);
 
@@ -146,21 +167,24 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return res.json({ reply: "Hi! I'm EventPulse AI running in demo mode. Set GEMINI_API_KEY to enable full AI assistance.\n\nI can answer questions like:\n- Which AI sessions are on Day 1?\n- Where is Hall A?\n- What time does the Gemini workshop start?", demo: true });
+    return res.json({ reply: "Hi! I'm EventPulse AI running in demo mode. Set GEMINI_API_KEY to enable full AI assistance.\n\nI can answer questions like:\n- Which gate has the shortest queue?\n- Where is the nearest food court?\n- What time does the match start?", demo: true });
   }
 
   const systemPrompt = `You are EventPulse AI, the official AI assistant for ${EVENT.name} ("${EVENT.tagline}").
 
 EVENT: ${EVENT.dates} | ${EVENT.venue} | Organised by: ${EVENT.organizer}
 
-STADIUM ZONES (with live crowd density):
-${EVENT.zones.map(z => {
+STADIUM ZONES (with live crowd density — updates every 30s):
+${liveZones.map(z => {
     const level = z.occupancy >= 80 ? 'HIGH DENSITY — AVOID' : z.occupancy >= 50 ? 'Moderate' : 'Low — Recommended';
     return `  - ${z.name}: ${z.occupancy}% full [${level}] | ${z.facilities}`;
   }).join('\n')}
 
-QUEUE WAIT TIMES (live):
-${EVENT.queues.map(q => `  - ${q.location}: ${q.waitMinutes} min wait [${q.status.toUpperCase()}]`).join('\n')}
+QUEUE WAIT TIMES (live — updates every 30s):
+${liveQueues.map(q => {
+    const status = q.waitMinutes <= 5 ? 'LOW' : q.waitMinutes <= 15 ? 'MODERATE' : 'HIGH';
+    return `  - ${q.location}: ${q.waitMinutes} min wait [${status}]`;
+  }).join('\n')}
 
 TEAMS & OFFICIALS:
 ${EVENT.speakers.map(s => `  - ${s.name}: ${s.role}`).join('\n')}
@@ -210,6 +234,31 @@ RULES:
   } catch (err) {
     console.error('Chat error:', err);
     res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+// Google Cloud Translation — uses Gemini for multilingual fan support
+app.post('/api/translate', apiLimiter, async (req, res) => {
+  const { text, lang = 'Hindi' } = req.body;
+  if (!text || typeof text !== 'string') return res.status(400).json({ error: 'text is required.' });
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return res.json({ translated: text, source: 'demo' });
+
+  try {
+    const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: `Translate the following stadium announcement to ${lang}. Return ONLY the translation, nothing else:\n\n${text}` }] }],
+        generationConfig: { maxOutputTokens: 256, temperature: 0.1 },
+      }),
+    });
+    const data = await r.json();
+    const translated = data?.candidates?.[0]?.content?.parts?.[0]?.text || text;
+    res.json({ translated, lang });
+  } catch (e) {
+    res.json({ translated: text, error: 'Translation unavailable.' });
   }
 });
 
