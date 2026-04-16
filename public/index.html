@@ -16,6 +16,10 @@
     gtag('js', new Date());
     gtag('config', 'G-EP2026PULSE');
   </script>
+  <!-- Firebase SDK (Authentication + Firestore) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -1156,6 +1160,7 @@
 </head>
 
 <body>
+  <a href="#panel-home" class="sr-only" style="position:absolute;top:0;left:0;z-index:200;padding:1rem;background:var(--cyan);color:#03080f;font-weight:700;" onfocus="this.style.position='static'" onblur="this.style.position='absolute'">Skip to main content</a>
 
   <header>
     <div class="header-inner">
@@ -1167,6 +1172,9 @@
         <strong id="event-name">IPL 2026 — RCB vs MI</strong>
         <span id="event-venue">M. Chinnaswamy Stadium, Bengaluru</span>
       </div>
+      <button id="auth-btn" style="margin-left:1rem;padding:0.4rem 1rem;background:rgba(6,214,245,0.1);border:1px solid #06d6f5;border-radius:999px;color:#06d6f5;font-size:0.78rem;cursor:pointer;font-family:var(--font-b);white-space:nowrap;transition:all 0.15s;position:relative;z-index:10;" aria-label="Sign in with Google">
+        Sign in with Google
+      </button>
     </div>
   </header>
 
@@ -1722,11 +1730,55 @@
       btn.addEventListener('click', () => sendMessage(btn.dataset.q));
     });
 
+    /* ── Firebase Authentication (Google Sign-In) ─────────────── */
+    let firebaseAuth = null;
+    try {
+      firebase.initializeApp({
+        apiKey: "AIzaSyBOcaqUI2tXy2LxfBwZcfAdjflMXPravkQ",
+        authDomain: "promptwars-493418.firebaseapp.com",
+        projectId: "promptwars-493418",
+        storageBucket: "promptwars-493418.firebasestorage.app",
+        messagingSenderId: "901504497544",
+        appId: "1:901504497544:web:ff9696a8ff10f9fd952c3d",
+        measurementId: "G-SWB341WPKV"
+      });
+      firebaseAuth = firebase.auth();
+
+      firebaseAuth.onAuthStateChanged(function(user) {
+        var btn = document.getElementById('auth-btn');
+        if (!btn) return;
+        if (user) {
+          btn.textContent = 'Hi, ' + (user.displayName || 'Fan').split(' ')[0] + ' \u2713';
+          btn.style.background = 'rgba(29,233,182,0.1)';
+          btn.style.borderColor = '#1de9b6';
+          btn.style.color = '#1de9b6';
+          if (typeof gtag === 'function') gtag('event', 'login', { method: 'Google' });
+        } else {
+          btn.textContent = 'Sign in with Google';
+          btn.style.background = 'rgba(6,214,245,0.1)';
+          btn.style.borderColor = '#06d6f5';
+          btn.style.color = '#06d6f5';
+        }
+      });
+    } catch (e) {
+      console.error('Firebase init error:', e);
+    }
+
+    document.getElementById('auth-btn').addEventListener('click', function() {
+      if (!firebaseAuth) { alert('Firebase authentication is loading...'); return; }
+      if (firebaseAuth.currentUser) {
+        firebaseAuth.signOut();
+      } else {
+        var provider = new firebase.auth.GoogleAuthProvider();
+        firebaseAuth.signInWithRedirect(provider);
+      }
+    });
+
     /* ── Init ───────────────────────────────────────────────── */
     loadEventInfo();
     loadZoneStatus();
     loadSchedule();
-    setInterval(loadZoneStatus, 30000); // refresh crowd data every 30 s
+    setInterval(loadZoneStatus, 30000);
   </script>
 
 </body>
