@@ -30,11 +30,11 @@ const chatLimiter = rateLimit({ windowMs: 60000, max: 20, standardHeaders: true,
 const apiLimiter = rateLimit({ windowMs: 60000, max: 100, message: { error: 'Too many requests.' } });
 
 const EVENT = {
-  name: 'TechSurge 2026',
-  tagline: 'Build the Agentic Future',
-  dates: 'April 25-26, 2026',
-  venue: 'NIMHANS Convention Centre, Bengaluru',
-  organizer: 'Google for Developers x Hack2Skill',
+  name: 'DevFest Hubballi 2026',
+  tagline: 'Building the Agentic Future with Google AI',
+  dates: 'May 10-11, 2026',
+  venue: 'BVB College of Engineering, Hubballi',
+  organizer: 'GDG Hubballi x Google for Developers',
   halls: [
     { id: 'main', name: 'Main Auditorium', capacity: 800, floor: 'Ground Floor' },
     { id: 'hall-a', name: 'Hall A - AI & Cloud', capacity: 400, floor: '1st Floor, East Wing' },
@@ -129,7 +129,7 @@ RULES:
       { role: 'user', parts: [{ text: message.trim() }] },
     ];
 
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -143,7 +143,11 @@ RULES:
       }),
     });
 
-    if (!r.ok) { console.error('Gemini error:', r.status); return res.status(502).json({ error: 'AI service unavailable. Please try again.' }); }
+    if (!r.ok) {
+      const errBody = await r.json().catch(() => ({}));
+      console.error('Gemini error:', r.status, JSON.stringify(errBody));
+      return res.status(502).json({ error: 'AI service unavailable. Please try again.' });
+    }
     const data = await r.json();
     const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!reply) return res.status(502).json({ error: 'No response from AI. Please try again.' });
