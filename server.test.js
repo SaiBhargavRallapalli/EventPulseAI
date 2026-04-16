@@ -1,5 +1,6 @@
 'use strict';
 
+process.env.PORT = 0; // use random port so tests don't conflict with a running server
 const request = require('supertest');
 const { app, server, EVENT } = require('./server');
 
@@ -167,6 +168,24 @@ describe('GET /api/queues', () => {
   });
 });
 
+// ── Translation (Google Cloud Translation via Gemini) ───────────────────────
+describe('POST /api/translate', () => {
+  it('returns 400 when text is missing', async () => {
+    const res = await request(app).post('/api/translate').send({});
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toBeDefined();
+  });
+
+  it('returns translated text in demo mode', async () => {
+    const saved = process.env.GEMINI_API_KEY;
+    delete process.env.GEMINI_API_KEY;
+    const res = await request(app).post('/api/translate').send({ text: 'Gate B is open', lang: 'Hindi' });
+    if (saved) process.env.GEMINI_API_KEY = saved;
+    expect(res.statusCode).toBe(200);
+    expect(res.body.translated).toBeDefined();
+  });
+});
+
 // ── Announcements ───────────────────────────────────────────────────────────
 describe('GET /api/announcements', () => {
   it('returns announcements array', async () => {
@@ -220,9 +239,12 @@ describe('POST /api/chat', () => {
   });
 
   it('returns a reply in demo mode (no API key)', async () => {
+    const saved = process.env.GEMINI_API_KEY;
+    delete process.env.GEMINI_API_KEY;
     const res = await request(app)
       .post('/api/chat')
       .send({ message: 'Which gate has the shortest queue?' });
+    if (saved) process.env.GEMINI_API_KEY = saved;
     expect(res.statusCode).toBe(200);
     expect(res.body.reply).toBeDefined();
     expect(typeof res.body.reply).toBe('string');
