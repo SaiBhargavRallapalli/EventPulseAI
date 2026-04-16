@@ -81,6 +81,25 @@ const EVENT = {
   ],
 };
 
+// Live crowd state — seeded from EVENT, fluctuates every 30 s
+let liveZones = EVENT.zones.map(z => ({ ...z }));
+let liveQueues = EVENT.queues.map(q => ({ ...q }));
+
+function fluctuateCrowd() {
+  liveZones = liveZones.map(z => {
+    const delta = Math.floor(Math.random() * 7) - 3; // -3 to +3
+    const occupancy = Math.min(99, Math.max(10, z.occupancy + delta));
+    return { ...z, occupancy };
+  });
+  liveQueues = liveQueues.map(q => {
+    const delta = Math.floor(Math.random() * 5) - 2; // -2 to +2
+    const waitMinutes = Math.min(40, Math.max(1, q.waitMinutes + delta));
+    const status = waitMinutes <= 5 ? 'low' : waitMinutes <= 15 ? 'moderate' : 'high';
+    return { ...q, waitMinutes, status };
+  });
+}
+setInterval(fluctuateCrowd, 30000);
+
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', event: EVENT.name, timestamp: new Date().toISOString() }));
 
 app.get('/api/event', apiLimiter, (_req, res) => { const { schedule, queues, ...meta } = EVENT; res.json(meta); });
@@ -100,7 +119,7 @@ app.get('/api/schedule', apiLimiter, (req, res) => {
 app.get('/api/crowd', apiLimiter, (_req, res) => {
   res.json({
     updatedAt: new Date().toISOString(),
-    zones: EVENT.zones.map(z => ({
+    zones: liveZones.map(z => ({
       ...z,
       densityLevel: z.occupancy >= 80 ? 'high' : z.occupancy >= 50 ? 'moderate' : 'low',
       recommendation: z.occupancy >= 80
@@ -113,7 +132,7 @@ app.get('/api/crowd', apiLimiter, (_req, res) => {
 });
 
 app.get('/api/queues', apiLimiter, (_req, res) => {
-  res.json({ updatedAt: new Date().toISOString(), queues: EVENT.queues });
+  res.json({ updatedAt: new Date().toISOString(), queues: liveQueues });
 });
 
 app.get('/api/announcements', apiLimiter, (_req, res) => res.json({ announcements: EVENT.announcements }));
