@@ -9,29 +9,33 @@ const path = require('path');
 require('dotenv').config();
 
 // ── Firebase Admin + Firestore (Google Cloud) ─────────────────────────────
+
+/** @type {FirebaseFirestore.Firestore|null} */
 let db;
 try {
   const admin = require('firebase-admin');
-  admin.initializeApp({ projectId: process.env.GOOGLE_CLOUD_PROJECT || 'eventpulse-ai' });
+  admin.initializeApp();
   db = admin.firestore();
   console.log('Firebase Firestore: connected');
 } catch (e) {
   console.log('Firebase Firestore: not configured, using in-memory data');
 }
 
+// ── Express App Setup ─────────────────────────────────────────────────────
+
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-app.use(compression()); // gzip responses for efficiency
+app.use(compression());
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", 'https://www.googletagmanager.com'],
+      scriptSrc: ["'self'", "'unsafe-inline'", 'https://www.googletagmanager.com', 'https://www.gstatic.com', 'https://apis.google.com'],
       styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-      frameSrc: ['https://www.google.com'],
-      connectSrc: ["'self'", 'https://www.google-analytics.com'],
+      frameSrc: ['https://www.google.com', 'https://*.firebaseapp.com', 'https://accounts.google.com'],
+      connectSrc: ["'self'", 'https://www.google-analytics.com', 'https://www.googleapis.com', 'https://securetoken.googleapis.com', 'https://identitytoolkit.googleapis.com', 'https://firestore.googleapis.com'],
       imgSrc: ["'self'", 'data:', 'https:'],
     },
   },
@@ -39,8 +43,87 @@ app.use(helmet({
 app.use(cors({ origin: process.env.ALLOWED_ORIGIN || '*', methods: ['GET', 'POST'] }));
 app.use(express.json({ limit: '10kb' }));
 
-const chatLimiter = rateLimit({ windowMs: 60000, max: 20, standardHeaders: true, legacyHeaders: false, message: { error: 'Too many requests. Please wait a moment.' } });
-const apiLimiter = rateLimit({ windowMs: 60000, max: 100, message: { error: 'Too many requests.' } });
+// ── Rate Limiting ─────────────────────────────────────────────────────────
+
+const chatLimiter = rateLimit({
+  windowMs: 60000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests. Please wait a moment.' },
+});
+
+const apiLimiter = rateLimit({
+  windowMs: 60000,
+  max: 100,
+  message: { error: 'Too many requests.' },
+});
+
+// ── In-Memory Response Cache ──────────────────────────────────────────────
+
+/** @type {Map<string, {data: any, ts: number}>} */
+const responseCache = new Map();
+const CACHE_TTL = 25000; // 25 seconds — just under the 30s crowd fluctuation cycle
+
+/**
+ * Retrieves cached response data if within TTL window.
+ * @param {string} key - Cache key identifier
+ * @returns {any|null} Cached data or null if expired/missing
+ */
+function getCached(key) {
+  const entry = responseCache.get(key);
+  if (entry && Date.now() - entry.ts < CACHE_TTL) return entry.data;
+  return null;
+}
+
+/**
+ * Stores response data in cache with current timestamp.
+ * @param {string} key - Cache key identifier
+ * @param {any} data - Response payload to cache
+ */
+function setCache(key, data) {
+  responseCache.set(key, { data, ts: Date.now() });
+}
+
+// ── Helper Functions ──────────────────────────────────────────────────────
+
+/**
+ * Classifies crowd density from occupancy percentage.
+ * @param {number} occupancy - Zone occupancy percentage (0-100)
+ * @returns {'high'|'moderate'|'low'} Density classification
+ */
+function getDensityLevel(occupancy) {
+  if (occupancy >= 80) return 'high';
+  if (occupancy >= 50) return 'moderate';
+  return 'low';
+}
+
+/**
+ * Returns a human-readable recommendation for a given density level.
+ * @param {'high'|'moderate'|'low'} level - Density classification
+ * @returns {string} Recommendation text for fans
+ */
+function getDensityRecommendation(level) {
+  const recommendations = {
+    high: 'Avoid — critically high crowd density',
+    moderate: 'Moderate — manageable crowd',
+    low: 'Recommended — low crowd density',
+  };
+  return recommendations[level];
+}
+
+/**
+ * Classifies queue status from wait time in minutes.
+ * @param {number} waitMinutes - Current queue wait time
+ * @returns {'low'|'moderate'|'high'} Queue status label
+ */
+function getQueueStatus(waitMinutes) {
+  if (waitMinutes <= 5) return 'low';
+  if (waitMinutes <= 15) return 'moderate';
+  return 'high';
+}
+
+// ── Event Data ────────────────────────────────────────────────────────────
 
 const EVENT = {
   name: 'IPL 2026 — RCB vs MI',
@@ -94,23 +177,33 @@ const EVENT = {
   ],
 };
 
-// Live crowd state — seeded from EVENT, fluctuates every 30 s
+// ── Live Crowd Simulation ─────────────────────────────────────────────────
+
+/** @type {Array<Object>} Mutable copy of zone data — fluctuates every 30s */
 let liveZones = EVENT.zones.map(z => ({ ...z }));
+
+/** @type {Array<Object>} Mutable copy of queue data — fluctuates every 30s */
 let liveQueues = EVENT.queues.map(q => ({ ...q }));
 
+/**
+ * Simulates real-time crowd fluctuation by applying bounded random deltas
+ * to zone occupancy (±3%) and queue wait times (±2 min) every 30 seconds.
+ * Persists snapshots to Firebase Firestore when available.
+ */
 function fluctuateCrowd() {
   liveZones = liveZones.map(z => {
     const delta = Math.floor(Math.random() * 7) - 3;
     const occupancy = Math.min(99, Math.max(10, z.occupancy + delta));
     return { ...z, occupancy };
   });
+
   liveQueues = liveQueues.map(q => {
     const delta = Math.floor(Math.random() * 5) - 2;
     const waitMinutes = Math.min(40, Math.max(1, q.waitMinutes + delta));
-    const status = waitMinutes <= 5 ? 'low' : waitMinutes <= 15 ? 'moderate' : 'high';
-    return { ...q, waitMinutes, status };
+    return { ...q, waitMinutes, status: getQueueStatus(waitMinutes) };
   });
-  // Persist snapshot to Firebase Firestore (if available)
+
+  // Persist snapshot to Firebase Firestore for historical analytics
   if (db) {
     db.collection('crowd-snapshots').add({
       zones: liveZones.map(z => ({ id: z.id, name: z.name, occupancy: z.occupancy })),
@@ -118,73 +211,134 @@ function fluctuateCrowd() {
       timestamp: new Date(),
     }).catch(() => {});
   }
+
+  // Invalidate response cache after fluctuation
+  responseCache.delete('crowd');
+  responseCache.delete('queues');
 }
+
 setInterval(fluctuateCrowd, 30000);
 
-app.get('/api/health', (_req, res) => res.json({ status: 'ok', event: EVENT.name, timestamp: new Date().toISOString() }));
+// ── API Routes ────────────────────────────────────────────────────────────
 
-app.get('/api/event', apiLimiter, (_req, res) => { const { schedule, queues, ...meta } = EVENT; res.json(meta); });
-
-app.get('/api/schedule', apiLimiter, (req, res) => {
-  const { day, track } = req.query;
-  let sessions = [...EVENT.schedule];
-  if (day !== undefined) {
-    const d = parseInt(day, 10);
-    if (isNaN(d) || d < 1 || d > 1) return res.status(400).json({ error: 'day must be 1.' });
-    sessions = sessions.filter(s => s.day === d);
-  }
-  if (track) sessions = sessions.filter(s => s.track.toLowerCase() === decodeURIComponent(track).toLowerCase());
-  res.json({ event: EVENT.name, sessions, total: sessions.length });
+/** Health check — used by Cloud Run for readiness probes */
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok', event: EVENT.name, timestamp: new Date().toISOString() });
 });
 
-app.get('/api/crowd', apiLimiter, (_req, res) => {
+/** Firebase client configuration — serves config from environment variables */
+app.get('/api/config', apiLimiter, (_req, res) => {
+  res.set('Cache-Control', 'public, max-age=3600');
   res.json({
-    updatedAt: new Date().toISOString(),
-    zones: liveZones.map(z => ({
-      ...z,
-      densityLevel: z.occupancy >= 80 ? 'high' : z.occupancy >= 50 ? 'moderate' : 'low',
-      recommendation: z.occupancy >= 80
-        ? 'Avoid — critically high crowd density'
-        : z.occupancy >= 50
-          ? 'Moderate — manageable crowd'
-          : 'Recommended — low crowd density',
-    })),
+    firebase: {
+      apiKey: process.env.FIREBASE_API_KEY || '',
+      authDomain: process.env.FIREBASE_AUTH_DOMAIN || '',
+      projectId: process.env.FIREBASE_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || '',
+    },
+    features: {
+      auth: !!process.env.FIREBASE_API_KEY,
+      analytics: true,
+      translation: !!process.env.GEMINI_API_KEY,
+    },
   });
 });
 
-app.get('/api/queues', apiLimiter, (_req, res) => {
-  res.json({ updatedAt: new Date().toISOString(), queues: liveQueues });
+/** Event metadata — excludes schedule and queues (served via dedicated endpoints) */
+app.get('/api/event', apiLimiter, (_req, res) => {
+  res.set('Cache-Control', 'public, max-age=300');
+  const { schedule, queues, ...meta } = EVENT;
+  res.json(meta);
 });
 
-app.get('/api/announcements', apiLimiter, (_req, res) => res.json({ announcements: EVENT.announcements }));
+/** Schedule with optional day and track filters */
+app.get('/api/schedule', apiLimiter, (req, res) => {
+  const { day, track } = req.query;
+  let sessions = [...EVENT.schedule];
 
-app.post('/api/chat', chatLimiter, async (req, res) => {
-  const { message, history = [] } = req.body;
-  if (!message || typeof message !== 'string') return res.status(400).json({ error: 'message is required and must be a string.' });
-  if (message.trim().length === 0) return res.status(400).json({ error: 'message cannot be empty.' });
-  if (message.length > 1000) return res.status(400).json({ error: 'message too long. Max 1000 characters.' });
-  if (!Array.isArray(history)) return res.status(400).json({ error: 'history must be an array.' });
-
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return res.json({ reply: "Hi! I'm EventPulse AI running in demo mode. Set GEMINI_API_KEY to enable full AI assistance.\n\nI can answer questions like:\n- Which gate has the shortest queue?\n- Where is the nearest food court?\n- What time does the match start?", demo: true });
+  if (day !== undefined) {
+    const d = parseInt(day, 10);
+    if (isNaN(d) || d < 1 || d > 1) {
+      return res.status(400).json({ error: 'day must be 1.' });
+    }
+    sessions = sessions.filter(s => s.day === d);
   }
 
-  const systemPrompt = `You are EventPulse AI, the official AI assistant for ${EVENT.name} ("${EVENT.tagline}").
+  if (track) {
+    sessions = sessions.filter(s =>
+      s.track.toLowerCase() === decodeURIComponent(track).toLowerCase()
+    );
+  }
+
+  res.set('Cache-Control', 'public, max-age=60');
+  res.json({ event: EVENT.name, sessions, total: sessions.length });
+});
+
+/** Live crowd density — cached for 25s, refreshes on fluctuation */
+app.get('/api/crowd', apiLimiter, (_req, res) => {
+  const cached = getCached('crowd');
+  if (cached) {
+    res.set('X-Cache', 'HIT');
+    return res.json(cached);
+  }
+
+  const data = {
+    updatedAt: new Date().toISOString(),
+    zones: liveZones.map(z => {
+      const densityLevel = getDensityLevel(z.occupancy);
+      return {
+        ...z,
+        densityLevel,
+        recommendation: getDensityRecommendation(densityLevel),
+      };
+    }),
+  };
+
+  setCache('crowd', data);
+  res.set('X-Cache', 'MISS');
+  res.json(data);
+});
+
+/** Live queue wait times — cached for 25s, refreshes on fluctuation */
+app.get('/api/queues', apiLimiter, (_req, res) => {
+  const cached = getCached('queues');
+  if (cached) {
+    res.set('X-Cache', 'HIT');
+    return res.json(cached);
+  }
+
+  const data = { updatedAt: new Date().toISOString(), queues: liveQueues };
+  setCache('queues', data);
+  res.set('X-Cache', 'MISS');
+  res.json(data);
+});
+
+/** Live announcements feed */
+app.get('/api/announcements', apiLimiter, (_req, res) => {
+  res.json({ announcements: EVENT.announcements });
+});
+
+// ── AI Chat (Google Gemini) ───────────────────────────────────────────────
+
+const VALID_ROLES = new Set(['user', 'model']);
+
+/**
+ * Builds the Gemini system prompt with live crowd and queue context.
+ * @returns {string} Complete system prompt for the AI assistant
+ */
+function buildSystemPrompt() {
+  return `You are EventPulse AI, the official AI assistant for ${EVENT.name} ("${EVENT.tagline}").
 
 EVENT: ${EVENT.dates} | ${EVENT.venue} | Organised by: ${EVENT.organizer}
 
 STADIUM ZONES (with live crowd density — updates every 30s):
 ${liveZones.map(z => {
-    const level = z.occupancy >= 80 ? 'HIGH DENSITY — AVOID' : z.occupancy >= 50 ? 'Moderate' : 'Low — Recommended';
-    return `  - ${z.name}: ${z.occupancy}% full [${level}] | ${z.facilities}`;
+    const level = getDensityLevel(z.occupancy);
+    const label = level === 'high' ? 'HIGH DENSITY — AVOID' : level === 'moderate' ? 'Moderate' : 'Low — Recommended';
+    return `  - ${z.name}: ${z.occupancy}% full [${label}] | ${z.facilities}`;
   }).join('\n')}
 
 QUEUE WAIT TIMES (live — updates every 30s):
-${liveQueues.map(q => {
-    const status = q.waitMinutes <= 5 ? 'LOW' : q.waitMinutes <= 15 ? 'MODERATE' : 'HIGH';
-    return `  - ${q.location}: ${q.waitMinutes} min wait [${status}]`;
-  }).join('\n')}
+${liveQueues.map(q => `  - ${q.location}: ${q.waitMinutes} min wait [${getQueueStatus(q.waitMinutes).toUpperCase()}]`).join('\n')}
 
 TEAMS & OFFICIALS:
 ${EVENT.speakers.map(s => `  - ${s.name}: ${s.role}`).join('\n')}
@@ -197,10 +351,46 @@ ${EVENT.schedule.map(s => `[${s.start}-${s.end}] "${s.title}"
 RULES:
 - Be friendly, helpful, and concise.
 - Always recommend the least crowded gate or food court when relevant.
-- Proactively warn about high-density zones (Gate C, Food Court F3) and suggest alternatives.
+- Proactively warn about high-density zones and suggest alternatives.
 - Only use data provided above. Do not fabricate information.
 - Use bullet points for lists.
 - For transport: Cubbon Park Metro Station is 2 min walk from Gate B.`;
+}
+
+app.post('/api/chat', chatLimiter, async (req, res) => {
+  const { message, history = [] } = req.body;
+
+  // Input validation
+  if (!message || typeof message !== 'string') {
+    return res.status(400).json({ error: 'message is required and must be a string.' });
+  }
+  if (message.trim().length === 0) {
+    return res.status(400).json({ error: 'message cannot be empty.' });
+  }
+  if (message.length > 1000) {
+    return res.status(400).json({ error: 'message too long. Max 1000 characters.' });
+  }
+  if (!Array.isArray(history)) {
+    return res.status(400).json({ error: 'history must be an array.' });
+  }
+
+  // Validate each history entry
+  if (history.length > 0) {
+    const validHistory = history.every(h =>
+      h && typeof h.role === 'string' && VALID_ROLES.has(h.role) && typeof h.text === 'string'
+    );
+    if (!validHistory) {
+      return res.status(400).json({ error: 'Each history item must have a valid role (user/model) and text (string).' });
+    }
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return res.json({
+      reply: "Hi! I'm EventPulse AI running in demo mode. Set GEMINI_API_KEY to enable full AI assistance.\n\nI can answer questions like:\n- Which gate has the shortest queue?\n- Where is the nearest food court?\n- What time does the match start?",
+      demo: true,
+    });
+  }
 
   try {
     const contents = [
@@ -208,11 +398,11 @@ RULES:
       { role: 'user', parts: [{ text: message.trim() }] },
     ];
 
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent`, {
+    const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
       body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemPrompt }] },
+        system_instruction: { parts: [{ text: buildSystemPrompt() }] },
         contents,
         generationConfig: { maxOutputTokens: 1024, temperature: 0.4, topP: 0.9 },
         safetySettings: [
@@ -227,9 +417,13 @@ RULES:
       console.error('Gemini error:', r.status, JSON.stringify(errBody));
       return res.status(502).json({ error: 'AI service unavailable. Please try again.' });
     }
+
     const data = await r.json();
     const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!reply) return res.status(502).json({ error: 'No response from AI. Please try again.' });
+    if (!reply) {
+      return res.status(502).json({ error: 'No response from AI. Please try again.' });
+    }
+
     res.json({ reply });
   } catch (err) {
     console.error('Chat error:', err);
@@ -237,10 +431,25 @@ RULES:
   }
 });
 
-// Google Cloud Translation — uses Gemini for multilingual fan support
+// ── Translation (Google Gemini — multilingual fan support) ────────────────
+
+const SUPPORTED_LANGS = new Set([
+  'Hindi', 'Kannada', 'Tamil', 'Telugu', 'Malayalam', 'Marathi', 'Bengali', 'Gujarati',
+]);
+
 app.post('/api/translate', apiLimiter, async (req, res) => {
   const { text, lang = 'Hindi' } = req.body;
-  if (!text || typeof text !== 'string') return res.status(400).json({ error: 'text is required.' });
+
+  // Input validation
+  if (!text || typeof text !== 'string') {
+    return res.status(400).json({ error: 'text is required.' });
+  }
+  if (text.length > 1000) {
+    return res.status(400).json({ error: 'text too long. Max 1000 characters.' });
+  }
+  if (!SUPPORTED_LANGS.has(lang)) {
+    return res.status(400).json({ error: `Unsupported language. Supported: ${[...SUPPORTED_LANGS].join(', ')}` });
+  }
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return res.json({ translated: text, source: 'demo' });
@@ -262,14 +471,26 @@ app.post('/api/translate', apiLimiter, async (req, res) => {
   }
 });
 
+// ── Static Files & Error Handling ─────────────────────────────────────────
+
 app.use(express.static(path.join(__dirname, 'public')));
-app.get('*', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // eslint-disable-next-line no-unused-vars
-app.use((err, _req, res, _next) => { console.error(err); res.status(500).json({ error: 'Something went wrong.' }); });
+app.use((err, _req, res, _next) => {
+  console.error(err);
+  res.status(500).json({ error: 'Something went wrong.' });
+});
+
+// ── Server Start ──────────────────────────────────────────────────────────
 
 const server = app.listen(PORT, () => {
   console.log(`EventPulse AI on http://localhost:${PORT}`);
   console.log(`Gemini: ${process.env.GEMINI_API_KEY ? 'configured' : 'demo mode'}`);
+  console.log(`Firestore: ${db ? 'connected' : 'in-memory fallback'}`);
 });
 
 module.exports = { app, server, EVENT };
