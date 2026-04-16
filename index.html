@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="EventPulse AI — Smart event companion powered by Google Gemini. Navigate sessions, get AI answers, and plan your TechSurge 2026 schedule." />
+  <meta name="theme-color" content="#03080f" />
+  <title>EventPulse AI | TechSurge 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #03080f;
+      --bg-1: #060d1a;
+      --bg-2: #0a1622;
+      --bg-3: #0f1e2e;
+      --bg-4: #132536;
+      --border: #1a3048;
+      --border-hi: #274a6a;
+      --text: #d4eaf7;
+      --text-2: #7aafc8;
+      --text-3: #3d6a86;
+      --cyan: #06d6f5;
+      --cyan-dim: rgba(6,214,245,0.12);
+      --cyan-glow: 0 0 24px rgba(6,214,245,0.25);
+      --amber: #ffb627;
+      --amber-dim: rgba(255,182,39,0.12);
+      --green: #1de9b6;
+      --green-dim: rgba(29,233,182,0.12);
+      --purple: #8b7cf8;
+      --purple-dim: rgba(139,124,248,0.12);
+      --red: #ff5f6d;
+      --red-dim: rgba(255,95,109,0.12);
+      --r: 10px;
+      --r-sm: 6px;
+      --font-h: 'Syne', sans-serif;
+      --font-b: 'Figtree', sans-serif;
+      --font-m: 'JetBrains Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-b);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Grid bg ──────────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(6,214,245,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(6,214,245,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── Header ───────────────────────────────────────────── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(3,8,15,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+    }
+
+    .header-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; align-items: center; gap: 1.5rem;
+      height: 64px;
+    }
+
+    .logo {
+      display: flex; align-items: center; gap: 0.6rem;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 800; color: #fff;
+      font-family: var(--font-h);
+      box-shadow: var(--cyan-glow);
+    }
+
+    .logo-text {
+      font-family: var(--font-h);
+      font-size: 1.15rem; font-weight: 700;
+      color: var(--text); letter-spacing: -0.01em;
+    }
+
+    .logo-text span { color: var(--cyan); }
+
+    .header-event {
+      margin-left: auto;
+      font-family: var(--font-m);
+      font-size: 0.72rem;
+      color: var(--text-2);
+      text-align: right;
+      line-height: 1.4;
+    }
+
+    .header-event strong { color: var(--cyan); display: block; font-size: 0.78rem; }
+
+    /* ── Nav ──────────────────────────────────────────────── */
+    nav {
+      background: var(--bg-1);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+      position: sticky; top: 64px; z-index: 99;
+    }
+
+    .nav-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; gap: 0; overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .nav-inner::-webkit-scrollbar { display: none; }
+
+    .nav-btn {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0 1.25rem; height: 48px;
+      font-family: var(--font-b); font-size: 0.875rem; font-weight: 500;
+      color: var(--text-2); background: none; border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer; white-space: nowrap;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .nav-btn:hover { color: var(--text); }
+    .nav-btn.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+    .nav-btn .icon { font-size: 1rem; }
+
+    /* ── Main ─────────────────────────────────────────────── */
+    main {
+      max-width: 1100px; margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+      position: relative; z-index: 1;
+    }
+
+    .panel { display: none; animation: fadeIn 0.25s ease; }
+    .panel.active { display: block; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── Cards ────────────────────────────────────────────── */
+    .card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1.5rem;
+    }
+
+    /* ── HOME PANEL ────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, var(--bg-2) 0%, var(--bg-3) 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      margin-bottom: 1.5rem;
+      position: relative; overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute; top: -80px; right: -80px;
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(6,214,245,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--cyan-dim); border: 1px solid rgba(6,214,245,0.3);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-family: var(--font-m); font-size: 0.7rem;
+      color: var(--cyan); margin-bottom: 1rem;
+    }
+
+    .hero-tag::before { content: '●'; font-size: 0.5rem; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .hero h1 {
+      font-family: var(--font-h);
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800; line-height: 1.1;
+      letter-spacing: -0.03em; margin-bottom: 0.5rem;
+    }
+
+    .hero h1 span { color: var(--cyan); }
+
+    .hero-tagline {
+      font-size: 1rem; color: var(--text-2);
+      margin-bottom: 1.75rem;
+    }
+
+    .hero-meta {
+      display: flex; flex-wrap: wrap; gap: 1rem;
+    }
+
+    .hero-chip {
+      display: flex; align-items: center; gap: 0.5rem;
+      background: var(--bg-3); border: 1px solid var(--border);
+      border-radius: var(--r-sm); padding: 0.5rem 0.9rem;
+      font-size: 0.82rem; color: var(--text-2);
+    }
+
+    .hero-chip .chip-icon { font-size: 1rem; }
+
+    /* Countdown */
+    .countdown {
+      display: flex; gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .count-box {
+      text-align: center;
+      background: var(--bg-3); border: 1px solid var(--border);
+      border-radius: var(--r-sm); padding: 0.75rem 1rem;
+      min-width: 64px;
+    }
+
+    .count-num {
+      font-family: var(--font-m); font-size: 1.5rem; font-weight: 500;
+      color: var(--cyan); display: block; line-height: 1;
+    }
+
+    .count-lbl {
+      font-size: 0.65rem; color: var(--text-3); text-transform: uppercase;
+      letter-spacing: 0.08em; margin-top: 4px; display: block;
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem; margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 1.25rem;
+      text-align: center;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .stat-card:hover { border-color: var(--border-hi); transform: translateY(-2px); }
+    .stat-num { font-family: var(--font-h); font-size: 2rem; font-weight: 800; color: var(--cyan); }
+    .stat-lbl { font-size: 0.8rem; color: var(--text-2); margin-top: 4px; }
+
+    /* Speakers */
+    .section-title {
+      font-family: var(--font-h); font-size: 1.1rem; font-weight: 700;
+      color: var(--text); margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+
+    .section-title::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(90deg, var(--border), transparent);
+    }
+
+    .speakers-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1rem;
+    }
+
+    .speaker-card {
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 1.25rem;
+      display: flex; align-items: center; gap: 0.9rem;
+      transition: border-color 0.2s;
+    }
+
+    .speaker-card:hover { border-color: var(--border-hi); }
+
+    .avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan-dim), var(--purple-dim));
+      border: 1px solid var(--border-hi);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-m); font-size: 0.7rem; font-weight: 500;
+      color: var(--cyan); flex-shrink: 0;
+    }
+
+    .speaker-name { font-size: 0.85rem; font-weight: 600; line-height: 1.2; }
+    .speaker-role { font-size: 0.72rem; color: var(--text-2); margin-top: 2px; line-height: 1.3; }
+
+    /* ── SCHEDULE PANEL ───────────────────────────────────── */
+    .filter-bar {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .filter-group { display: flex; gap: 0.4rem; }
+
+    .filter-btn {
+      padding: 0.4rem 0.9rem; border-radius: 999px;
+      font-size: 0.8rem; font-weight: 500; font-family: var(--font-b);
+      background: var(--bg-2); border: 1px solid var(--border);
+      color: var(--text-2); cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .filter-btn:hover { border-color: var(--border-hi); color: var(--text); }
+    .filter-btn.active { background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan); }
+
+    .sessions-list { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .session-card {
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 1.25rem 1.5rem;
+      display: grid; grid-template-columns: auto 1fr auto;
+      gap: 1rem; align-items: start;
+      transition: border-color 0.2s, transform 0.15s;
+      position: relative;
+    }
+
+    .session-card:hover { border-color: var(--border-hi); transform: translateX(3px); }
+
+    .session-time {
+      font-family: var(--font-m); font-size: 0.75rem;
+      color: var(--text-3); white-space: nowrap; padding-top: 2px;
+      min-width: 90px;
+    }
+
+    .session-time .day-badge {
+      display: block;
+      background: var(--bg-3); border: 1px solid var(--border);
+      border-radius: var(--r-sm); padding: 2px 8px;
+      font-size: 0.65rem; color: var(--cyan);
+      margin-bottom: 4px; text-align: center;
+    }
+
+    .session-body { min-width: 0; }
+
+    .session-title {
+      font-family: var(--font-h); font-size: 0.95rem; font-weight: 600;
+      line-height: 1.3; margin-bottom: 0.4rem;
+    }
+
+    .session-meta {
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .session-tag {
+      font-size: 0.7rem; font-family: var(--font-m);
+      padding: 2px 8px; border-radius: 4px;
+      border: 1px solid;
+    }
+
+    .session-tag.track-keynote { background: var(--amber-dim); border-color: rgba(255,182,39,0.3); color: var(--amber); }
+    .session-tag.track-ai { background: var(--purple-dim); border-color: rgba(139,124,248,0.3); color: var(--purple); }
+    .session-tag.track-web { background: var(--green-dim); border-color: rgba(29,233,182,0.3); color: var(--green); }
+    .session-tag.track-cloud { background: var(--cyan-dim); border-color: rgba(6,214,245,0.3); color: var(--cyan); }
+
+    .session-speaker { font-size: 0.8rem; color: var(--text-2); }
+    .session-hall { font-size: 0.75rem; color: var(--text-3); margin-top: 2px; }
+    .session-desc { font-size: 0.8rem; color: var(--text-2); margin-top: 0.4rem; line-height: 1.5; }
+
+    .cal-btn {
+      display: flex; align-items: center; gap: 0.35rem;
+      padding: 0.45rem 0.8rem; border-radius: var(--r-sm);
+      background: var(--bg-3); border: 1px solid var(--border);
+      font-size: 0.75rem; color: var(--text-2); cursor: pointer;
+      text-decoration: none; white-space: nowrap;
+      transition: all 0.15s; font-family: var(--font-b);
+      flex-shrink: 0; align-self: start;
+    }
+
+    .cal-btn:hover { background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan); }
+
+    /* ── VENUE PANEL ──────────────────────────────────────── */
+    .venue-grid {
+      display: grid; grid-template-columns: 1fr 340px;
+      gap: 1.5rem; align-items: start;
+    }
+
+    @media (max-width: 768px) { .venue-grid { grid-template-columns: 1fr; } }
+
+    .map-frame {
+      border-radius: var(--r); overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--bg-2);
+    }
+
+    .map-frame iframe {
+      display: block; width: 100%; height: 420px; border: 0;
+    }
+
+    .halls-list { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .hall-item {
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 1rem 1.25rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+
+    .hall-dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+
+    .hall-info { flex: 1; }
+    .hall-name { font-size: 0.9rem; font-weight: 600; margin-bottom: 2px; }
+    .hall-detail { font-size: 0.75rem; color: var(--text-2); }
+
+    .hall-cap {
+      font-family: var(--font-m); font-size: 0.7rem;
+      color: var(--text-3); text-align: right;
+    }
+
+    .hall-cap span { display: block; color: var(--cyan); font-size: 0.9rem; }
+
+    /* ── CHAT PANEL ───────────────────────────────────────── */
+    .chat-layout {
+      display: grid; grid-template-columns: 1fr 280px;
+      gap: 1.5rem; align-items: start;
+    }
+
+    @media (max-width: 768px) { .chat-layout { grid-template-columns: 1fr; } }
+
+    .chat-container {
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: var(--r); display: flex; flex-direction: column;
+      height: 560px;
+    }
+
+    .chat-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+
+    .ai-indicator {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; box-shadow: var(--cyan-glow);
+    }
+
+    .chat-title { font-family: var(--font-h); font-size: 0.95rem; font-weight: 700; }
+    .chat-sub { font-size: 0.72rem; color: var(--text-2); }
+
+    .chat-status {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 0.4rem;
+      font-family: var(--font-m); font-size: 0.68rem; color: var(--green);
+    }
+
+    .chat-status::before { content: '●'; font-size: 0.5rem; animation: pulse 2s infinite; }
+
+    .chat-messages {
+      flex: 1; overflow-y: auto; padding: 1.25rem;
+      display: flex; flex-direction: column; gap: 1rem;
+      scroll-behavior: smooth;
+    }
+
+    .chat-messages::-webkit-scrollbar { width: 4px; }
+    .chat-messages::-webkit-scrollbar-track { background: transparent; }
+    .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .msg {
+      display: flex; gap: 0.6rem; align-items: flex-start;
+      animation: msgIn 0.2s ease;
+    }
+
+    @keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .msg.user { flex-direction: row-reverse; }
+
+    .msg-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; flex-shrink: 0; font-family: var(--font-m);
+    }
+
+    .msg.bot .msg-avatar { background: linear-gradient(135deg, var(--cyan), var(--purple)); color: #fff; }
+    .msg.user .msg-avatar { background: var(--bg-3); border: 1px solid var(--border); color: var(--text-2); }
+
+    .msg-bubble {
+      max-width: 75%; padding: 0.7rem 1rem;
+      border-radius: 12px; font-size: 0.85rem; line-height: 1.6;
+    }
+
+    .msg.bot .msg-bubble {
+      background: var(--bg-3); border: 1px solid var(--border);
+      border-bottom-left-radius: 4px; color: var(--text);
+    }
+
+    .msg.user .msg-bubble {
+      background: var(--cyan-dim); border: 1px solid rgba(6,214,245,0.3);
+      border-bottom-right-radius: 4px; color: var(--text);
+    }
+
+    .msg-bubble ul { padding-left: 1.2rem; margin-top: 0.3rem; }
+    .msg-bubble li { margin-bottom: 0.2rem; }
+    .msg-bubble strong { color: var(--cyan); }
+
+    .typing-indicator {
+      display: flex; gap: 4px; align-items: center;
+      padding: 0.7rem 1rem;
+    }
+
+    .typing-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--text-3); animation: typing 1.2s ease-in-out infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing { 0%,60%,100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-6px); opacity: 1; } }
+
+    .chat-input-area {
+      padding: 1rem; border-top: 1px solid var(--border);
+      display: flex; gap: 0.5rem; align-items: flex-end;
+    }
+
+    #chat-input {
+      flex: 1; background: var(--bg-3); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.65rem 0.9rem;
+      font-family: var(--font-b); font-size: 0.85rem; color: var(--text);
+      resize: none; max-height: 100px; min-height: 38px;
+      outline: none; transition: border-color 0.15s;
+    }
+
+    #chat-input:focus { border-color: var(--cyan); }
+    #chat-input::placeholder { color: var(--text-3); }
+
+    #send-btn {
+      width: 38px; height: 38px; border-radius: 8px;
+      background: var(--cyan); border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
+      transition: background 0.15s, transform 0.1s;
+      font-size: 15px;
+    }
+
+    #send-btn:hover { background: #04bdd8; }
+    #send-btn:active { transform: scale(0.95); }
+    #send-btn:disabled { background: var(--bg-3); border: 1px solid var(--border); cursor: not-allowed; }
+
+    /* Chat sidebar */
+    .chat-sidebar { display: flex; flex-direction: column; gap: 1rem; }
+
+    .sidebar-card {
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 1.25rem;
+    }
+
+    .sidebar-title {
+      font-family: var(--font-h); font-size: 0.85rem; font-weight: 700;
+      margin-bottom: 0.75rem; color: var(--cyan);
+    }
+
+    .quick-btn {
+      display: block; width: 100%; text-align: left;
+      background: var(--bg-3); border: 1px solid var(--border);
+      border-radius: var(--r-sm); padding: 0.6rem 0.8rem;
+      font-size: 0.78rem; color: var(--text-2); cursor: pointer;
+      margin-bottom: 0.5rem; transition: all 0.15s;
+      font-family: var(--font-b);
+    }
+
+    .quick-btn:hover { background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan); }
+    .quick-btn:last-child { margin-bottom: 0; }
+
+    /* ── ANNOUNCEMENTS ─────────────────────────────────────── */
+    .ann-list { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .ann-item {
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 1rem 1.25rem;
+      display: flex; gap: 1rem; align-items: flex-start;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .ann-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+    .ann-body { flex: 1; }
+    .ann-text { font-size: 0.875rem; line-height: 1.5; }
+    .ann-time { font-family: var(--font-m); font-size: 0.7rem; color: var(--text-3); margin-top: 4px; }
+    .ann-item.info { border-left: 3px solid var(--cyan); }
+    .ann-item.success { border-left: 3px solid var(--green); }
+    .ann-item.warning { border-left: 3px solid var(--amber); }
+
+    /* ── Utility ──────────────────────────────────────────── */
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+    .loading-state {
+      text-align: center; padding: 3rem;
+      color: var(--text-3); font-family: var(--font-m); font-size: 0.8rem;
+    }
+
+    .error-state {
+      background: var(--red-dim); border: 1px solid rgba(255,95,109,0.3);
+      border-radius: var(--r); padding: 1rem 1.25rem;
+      color: var(--red); font-size: 0.85rem;
+    }
+
+    @media (max-width: 640px) {
+      main { padding: 1.25rem 1rem 3rem; }
+      .hero { padding: 1.5rem; }
+      .session-card { grid-template-columns: 1fr; }
+      .session-time { display: flex; gap: 0.5rem; align-items: center; }
+      .cal-btn span { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <a href="/" class="logo" aria-label="EventPulse AI Home">
+        <div class="logo-icon" aria-hidden="true">EP</div>
+        <span class="logo-text">Event<span>Pulse</span> AI</span>
+      </a>
+      <div class="header-event" aria-live="polite">
+        <strong id="event-name">TechSurge 2026</strong>
+        <span id="event-venue">NIMHANS Convention Centre, Bengaluru</span>
+      </div>
+    </div>
+  </header>
+
+  <nav role="navigation" aria-label="Main navigation">
+    <div class="nav-inner">
+      <button class="nav-btn active" data-panel="home" aria-selected="true" role="tab">
+        <span class="icon" aria-hidden="true">⚡</span> Home
+      </button>
+      <button class="nav-btn" data-panel="schedule" aria-selected="false" role="tab">
+        <span class="icon" aria-hidden="true">📅</span> Schedule
+      </button>
+      <button class="nav-btn" data-panel="venue" aria-selected="false" role="tab">
+        <span class="icon" aria-hidden="true">📍</span> Venue
+      </button>
+      <button class="nav-btn" data-panel="chat" aria-selected="false" role="tab">
+        <span class="icon" aria-hidden="true">🤖</span> AI Assistant
+      </button>
+      <button class="nav-btn" data-panel="announcements" aria-selected="false" role="tab">
+        <span class="icon" aria-hidden="true">📢</span> Updates
+      </button>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- HOME ─────────────────────────────────────────────── -->
+    <section class="panel active" id="panel-home" role="tabpanel" aria-label="Home">
+
+      <div class="hero">
+        <div class="hero-tag">LIVE EVENT</div>
+        <h1>Tech<span>Surge</span> 2026</h1>
+        <p class="hero-tagline">Build the Agentic Future — Bengaluru's Premier Developer Conference</p>
+        <div class="hero-meta">
+          <div class="hero-chip"><span class="chip-icon" aria-hidden="true">📅</span> April 25–26, 2026</div>
+          <div class="hero-chip"><span class="chip-icon" aria-hidden="true">📍</span> NIMHANS Convention Centre</div>
+          <div class="hero-chip"><span class="chip-icon" aria-hidden="true">👥</span> 1200+ Attendees</div>
+        </div>
+        <div class="countdown" role="timer" aria-label="Countdown to event">
+          <div class="count-box"><span class="count-num" id="cd-days">--</span><span class="count-lbl">Days</span></div>
+          <div class="count-box"><span class="count-num" id="cd-hrs">--</span><span class="count-lbl">Hours</span></div>
+          <div class="count-box"><span class="count-num" id="cd-min">--</span><span class="count-lbl">Mins</span></div>
+          <div class="count-box"><span class="count-num" id="cd-sec">--</span><span class="count-lbl">Secs</span></div>
+        </div>
+      </div>
+
+      <div class="stats-row" role="list" aria-label="Event statistics">
+        <div class="stat-card" role="listitem"><div class="stat-num">12</div><div class="stat-lbl">Sessions</div></div>
+        <div class="stat-card" role="listitem"><div class="stat-num">6</div><div class="stat-lbl">Speakers</div></div>
+        <div class="stat-card" role="listitem"><div class="stat-num">4</div><div class="stat-lbl">Tracks</div></div>
+        <div class="stat-card" role="listitem"><div class="stat-num">2</div><div class="stat-lbl">Days</div></div>
+      </div>
+
+      <h2 class="section-title">Featured Speakers</h2>
+      <div class="speakers-grid" id="speakers-grid" role="list" aria-label="Speakers"></div>
+    </section>
+
+    <!-- SCHEDULE ─────────────────────────────────────────── -->
+    <section class="panel" id="panel-schedule" role="tabpanel" aria-label="Event schedule">
+      <h2 class="section-title">Full Schedule</h2>
+
+      <div class="filter-bar" role="group" aria-label="Filter sessions">
+        <div class="filter-group" role="group" aria-label="Filter by day">
+          <button class="filter-btn active" data-filter="day" data-val="all" aria-pressed="true">All Days</button>
+          <button class="filter-btn" data-filter="day" data-val="1" aria-pressed="false">Day 1 · Apr 25</button>
+          <button class="filter-btn" data-filter="day" data-val="2" aria-pressed="false">Day 2 · Apr 26</button>
+        </div>
+        <div class="filter-group" role="group" aria-label="Filter by track">
+          <button class="filter-btn" data-filter="track" data-val="all" aria-pressed="false">All Tracks</button>
+          <button class="filter-btn" data-filter="track" data-val="Keynote" aria-pressed="false">Keynote</button>
+          <button class="filter-btn" data-filter="track" data-val="AI & ML" aria-pressed="false">AI & ML</button>
+          <button class="filter-btn" data-filter="track" data-val="Web & Mobile" aria-pressed="false">Web & Mobile</button>
+          <button class="filter-btn" data-filter="track" data-val="Cloud" aria-pressed="false">Cloud</button>
+        </div>
+      </div>
+
+      <div class="sessions-list" id="sessions-list" role="list" aria-label="Sessions">
+        <div class="loading-state" aria-live="polite">Loading schedule…</div>
+      </div>
+    </section>
+
+    <!-- VENUE ────────────────────────────────────────────── -->
+    <section class="panel" id="panel-venue" role="tabpanel" aria-label="Venue information">
+      <h2 class="section-title">Venue & Halls</h2>
+
+      <div class="venue-grid">
+        <div>
+          <div class="map-frame">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3888.8756577534413!2d77.5907349!3d12.9269405!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae15f68a875cdb%3A0x5a3a0faecc7a79b6!2sNIMHANS%20Convention%20Centre!5e0!3m2!1sen!2sin!4v1713000000000!5m2!1sen!2sin"
+              allowfullscreen=""
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              title="NIMHANS Convention Centre, Bengaluru"
+              aria-label="Google Maps showing NIMHANS Convention Centre location">
+            </iframe>
+          </div>
+          <div style="margin-top:1rem;" class="card">
+            <p style="font-size:0.85rem;color:var(--text-2);line-height:1.6;">
+              <strong style="color:var(--text)">NIMHANS Convention Centre</strong><br>
+              Hosur Road, Lakkasandra, Wilson Garden, Bengaluru, Karnataka 560029<br><br>
+              <span style="color:var(--cyan)">🚇</span> Nearest Metro: Lakkasandra Station (Purple Line, ~800m)<br>
+              <span style="color:var(--cyan)">🚗</span> Parking: Available on-site (B1 & B2 levels, 600 slots)<br>
+              <span style="color:var(--cyan)">🚕</span> Drop-off: Gate 2, Hosur Road entrance
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="section-title" style="font-size:0.9rem;margin-bottom:0.75rem;">Hall Guide</h3>
+          <div class="halls-list" id="halls-list" role="list" aria-label="Event halls"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI CHAT ──────────────────────────────────────────── -->
+    <section class="panel" id="panel-chat" role="tabpanel" aria-label="AI Assistant">
+      <div class="chat-layout">
+
+        <div>
+          <div class="chat-container" role="log" aria-label="Chat with EventPulse AI" aria-live="polite">
+            <div class="chat-header">
+              <div class="ai-indicator" aria-hidden="true">🤖</div>
+              <div>
+                <div class="chat-title">EventPulse AI</div>
+                <div class="chat-sub">Powered by Google Gemini</div>
+              </div>
+              <div class="chat-status" aria-label="AI is online">Online</div>
+            </div>
+
+            <div class="chat-messages" id="chat-messages" aria-label="Conversation">
+              <div class="msg bot" role="article" aria-label="AI message">
+                <div class="msg-avatar" aria-hidden="true">EP</div>
+                <div class="msg-bubble">
+                  👋 Hi! I'm <strong>EventPulse AI</strong>, your personal guide to TechSurge 2026.<br><br>
+                  I can help you with:<br>
+                  • Finding sessions by topic or time<br>
+                  • Locating halls and speakers<br>
+                  • Planning your personal schedule<br>
+                  • Answering anything about the event<br><br>
+                  What would you like to know?
+                </div>
+              </div>
+            </div>
+
+            <div class="chat-input-area">
+              <label for="chat-input" class="sr-only">Type your message</label>
+              <textarea
+                id="chat-input"
+                rows="1"
+                placeholder="Ask me about sessions, speakers, halls…"
+                aria-label="Message input"
+                maxlength="1000">
+              </textarea>
+              <button id="send-btn" aria-label="Send message" title="Send (Enter)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#03080f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-sidebar">
+          <div class="sidebar-card">
+            <div class="sidebar-title">💡 Quick Questions</div>
+            <button class="quick-btn" data-q="Which sessions are happening on Day 1?">Day 1 sessions?</button>
+            <button class="quick-btn" data-q="Which AI and ML talks can I attend?">AI & ML talks?</button>
+            <button class="quick-btn" data-q="Where is Hall A located?">Where is Hall A?</button>
+            <button class="quick-btn" data-q="What sessions are at 10:30 AM?">Sessions at 10:30?</button>
+            <button class="quick-btn" data-q="Who is speaking about Cloud Run?">Cloud Run speaker?</button>
+            <button class="quick-btn" data-q="Give me a recommended schedule for someone interested in AI.">Recommended AI track?</button>
+          </div>
+          <div class="sidebar-card">
+            <div class="sidebar-title">📊 Event Stats</div>
+            <div style="font-family:var(--font-m);font-size:0.72rem;color:var(--text-2);line-height:2;">
+              <div>Sessions: <span style="color:var(--cyan)">12</span></div>
+              <div>Speakers: <span style="color:var(--cyan)">6</span></div>
+              <div>Tracks: <span style="color:var(--cyan)">4</span></div>
+              <div>Venue: <span style="color:var(--cyan)">4 halls</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ANNOUNCEMENTS ────────────────────────────────────── -->
+    <section class="panel" id="panel-announcements" role="tabpanel" aria-label="Live updates">
+      <h2 class="section-title">Live Updates</h2>
+      <div class="ann-list" id="ann-list" role="log" aria-live="polite" aria-label="Announcements">
+        <div class="loading-state">Loading announcements…</div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    /* ── State ──────────────────────────────────────────────── */
+    let allSessions = [];
+    let chatHistory = [];
+    let activeDay = 'all';
+    let activeTrack = 'all';
+    let isBotTyping = false;
+
+    /* ── Navigation ─────────────────────────────────────────── */
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const panels = document.querySelectorAll('.panel');
+
+    navBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.panel;
+        navBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+        panels.forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+        document.getElementById('panel-' + target).classList.add('active');
+        if (target === 'schedule' && allSessions.length === 0) loadSchedule();
+        if (target === 'announcements') loadAnnouncements();
+        if (target === 'venue') renderHalls();
+      });
+    });
+
+    /* ── Countdown Timer ────────────────────────────────────── */
+    function updateCountdown() {
+      const target = new Date('2026-04-25T09:00:00+05:30');
+      const now = new Date();
+      const diff = target - now;
+      if (diff <= 0) {
+        ['cd-days','cd-hrs','cd-min','cd-sec'].forEach(id => document.getElementById(id).textContent = '00');
+        return;
+      }
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      document.getElementById('cd-days').textContent = String(d).padStart(2, '0');
+      document.getElementById('cd-hrs').textContent = String(h).padStart(2, '0');
+      document.getElementById('cd-min').textContent = String(m).padStart(2, '0');
+      document.getElementById('cd-sec').textContent = String(s).padStart(2, '0');
+    }
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    /* ── Load Event Info ─────────────────────────────────────── */
+    async function loadEventInfo() {
+      try {
+        const res = await fetch('/api/event');
+        const data = await res.json();
+        document.getElementById('event-name').textContent = data.name;
+        document.getElementById('event-venue').textContent = data.venue;
+        renderSpeakers(data.speakers);
+      } catch (e) {
+        console.error('Failed to load event info:', e);
+      }
+    }
+
+    function renderSpeakers(speakers) {
+      const grid = document.getElementById('speakers-grid');
+      grid.innerHTML = speakers.map(s => `
+        <div class="speaker-card" role="listitem">
+          <div class="avatar" aria-hidden="true">${s.avatar}</div>
+          <div>
+            <div class="speaker-name">${escHtml(s.name)}</div>
+            <div class="speaker-role">${escHtml(s.role)}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    /* ── Schedule ───────────────────────────────────────────── */
+    async function loadSchedule() {
+      const list = document.getElementById('sessions-list');
+      list.innerHTML = '<div class="loading-state" aria-live="polite">Loading schedule…</div>';
+      try {
+        const res = await fetch('/api/schedule');
+        const data = await res.json();
+        allSessions = data.sessions;
+        renderSessions();
+      } catch (e) {
+        list.innerHTML = '<div class="error-state">Failed to load schedule. Please refresh.</div>';
+      }
+    }
+
+    function trackClass(track) {
+      if (track === 'Keynote') return 'track-keynote';
+      if (track === 'AI & ML') return 'track-ai';
+      if (track.startsWith('Web')) return 'track-web';
+      if (track === 'Cloud') return 'track-cloud';
+      return 'track-cloud';
+    }
+
+    function calUrl(s) {
+      const venue = encodeURIComponent('NIMHANS Convention Centre, Bengaluru');
+      const details = encodeURIComponent(`${s.description}\n\nSpeaker: ${s.speaker}\nHall: ${s.hall}`);
+      const title = encodeURIComponent(s.title);
+      return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${s.calStart}/${s.calEnd}&details=${details}&location=${venue}`;
+    }
+
+    function renderSessions() {
+      const list = document.getElementById('sessions-list');
+      let filtered = allSessions.filter(s => {
+        const dayOk = activeDay === 'all' || s.day === parseInt(activeDay);
+        const trackOk = activeTrack === 'all' || s.track === activeTrack;
+        return dayOk && trackOk;
+      });
+
+      if (filtered.length === 0) {
+        list.innerHTML = '<div class="loading-state">No sessions match the selected filters.</div>';
+        return;
+      }
+
+      list.innerHTML = filtered.map(s => `
+        <article class="session-card" role="listitem" aria-label="${escHtml(s.title)}">
+          <div class="session-time">
+            <span class="day-badge">Day ${s.day}</span>
+            <span>${s.start}</span><br>
+            <span style="color:var(--text-3);font-size:0.7rem;">→ ${s.end}</span>
+          </div>
+          <div class="session-body">
+            <div class="session-title">${escHtml(s.title)}</div>
+            <div class="session-meta">
+              <span class="session-tag ${trackClass(s.track)}">${escHtml(s.track)}</span>
+            </div>
+            <div class="session-speaker">👤 ${escHtml(s.speaker)}</div>
+            <div class="session-hall">📍 ${escHtml(s.hall)}</div>
+            <div class="session-desc">${escHtml(s.description)}</div>
+          </div>
+          <a class="cal-btn" href="${calUrl(s)}" target="_blank" rel="noopener noreferrer"
+             aria-label="Add ${escHtml(s.title)} to Google Calendar">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>Add to Calendar</span>
+          </a>
+        </article>
+      `).join('');
+    }
+
+    /* Filter buttons */
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const filterType = btn.dataset.filter;
+        const val = btn.dataset.val;
+
+        document.querySelectorAll(`.filter-btn[data-filter="${filterType}"]`).forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-pressed', 'false');
+        });
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+
+        if (filterType === 'day') activeDay = val;
+        else activeTrack = val;
+
+        if (allSessions.length > 0) renderSessions();
+      });
+    });
+
+    /* ── Venue / Halls ──────────────────────────────────────── */
+    const HALL_COLORS = { main: '#ffb627', 'hall-a': '#8b7cf8', 'hall-b': '#1de9b6', 'hall-c': '#06d6f5' };
+
+    function renderHalls() {
+      fetch('/api/event').then(r => r.json()).then(data => {
+        const list = document.getElementById('halls-list');
+        list.innerHTML = data.halls.map(h => `
+          <div class="hall-item" role="listitem">
+            <div class="hall-dot" style="background:${HALL_COLORS[h.id] || '#06d6f5'}" aria-hidden="true"></div>
+            <div class="hall-info">
+              <div class="hall-name">${escHtml(h.name)}</div>
+              <div class="hall-detail">${escHtml(h.floor)}</div>
+            </div>
+            <div class="hall-cap" aria-label="${h.capacity} seats capacity">
+              <span>${h.capacity}</span>seats
+            </div>
+          </div>
+        `).join('');
+      }).catch(() => {});
+    }
+
+    /* ── Announcements ──────────────────────────────────────── */
+    async function loadAnnouncements() {
+      const list = document.getElementById('ann-list');
+      try {
+        const res = await fetch('/api/announcements');
+        const data = await res.json();
+        const icons = { info: 'ℹ️', success: '✅', warning: '⚠️' };
+        list.innerHTML = data.announcements.reverse().map(a => `
+          <div class="ann-item ${a.type}" role="listitem">
+            <div class="ann-icon" aria-hidden="true">${icons[a.type] || 'ℹ️'}</div>
+            <div class="ann-body">
+              <div class="ann-text">${escHtml(a.text)}</div>
+              <div class="ann-time">Today at ${a.time}</div>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        list.innerHTML = '<div class="error-state">Failed to load announcements.</div>';
+      }
+    }
+
+    /* ── Chat ───────────────────────────────────────────────── */
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const messagesEl = document.getElementById('chat-messages');
+
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function formatMarkdown(text) {
+      return text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/• (.*?)(?=\n|$)/g, '<li>$1</li>')
+        .replace(/^- (.*?)$/gm, '<li>$1</li>')
+        .replace(/\n/g, '<br>');
+    }
+
+    function appendMsg(role, text) {
+      const div = document.createElement('div');
+      div.className = `msg ${role}`;
+      div.setAttribute('role', 'article');
+      div.setAttribute('aria-label', `${role === 'bot' ? 'AI' : 'Your'} message`);
+      const avatarText = role === 'bot' ? 'EP' : 'ME';
+      div.innerHTML = `
+        <div class="msg-avatar" aria-hidden="true">${avatarText}</div>
+        <div class="msg-bubble">${formatMarkdown(escHtml(text))}</div>
+      `;
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function showTyping() {
+      const div = document.createElement('div');
+      div.className = 'msg bot';
+      div.id = 'typing-indicator';
+      div.setAttribute('aria-label', 'AI is typing');
+      div.innerHTML = `
+        <div class="msg-avatar" aria-hidden="true">EP</div>
+        <div class="msg-bubble typing-indicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      `;
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function removeTyping() {
+      const el = document.getElementById('typing-indicator');
+      if (el) el.remove();
+    }
+
+    async function sendMessage(text) {
+      if (!text || isBotTyping) return;
+      const trimmed = text.trim();
+      if (!trimmed) return;
+
+      appendMsg('user', trimmed);
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      isBotTyping = true;
+      sendBtn.disabled = true;
+      showTyping();
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: trimmed, history: chatHistory }),
+        });
+        const data = await res.json();
+        removeTyping();
+
+        if (data.error) {
+          appendMsg('bot', '⚠️ ' + data.error);
+        } else {
+          appendMsg('bot', data.reply);
+          chatHistory.push({ role: 'user', text: trimmed });
+          chatHistory.push({ role: 'model', text: data.reply });
+          if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+        }
+      } catch (e) {
+        removeTyping();
+        appendMsg('bot', '⚠️ Network error. Please check your connection and try again.');
+      } finally {
+        isBotTyping = false;
+        sendBtn.disabled = false;
+      }
+    }
+
+    sendBtn.addEventListener('click', () => sendMessage(chatInput.value));
+
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage(chatInput.value);
+      }
+    });
+
+    chatInput.addEventListener('input', () => {
+      chatInput.style.height = 'auto';
+      chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px';
+    });
+
+    document.querySelectorAll('.quick-btn').forEach(btn => {
+      btn.addEventListener('click', () => sendMessage(btn.dataset.q));
+    });
+
+    /* ── Init ───────────────────────────────────────────────── */
+    loadEventInfo();
+  </script>
+
+</body>
+</html>
