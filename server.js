@@ -30,62 +30,90 @@ const chatLimiter = rateLimit({ windowMs: 60000, max: 20, standardHeaders: true,
 const apiLimiter = rateLimit({ windowMs: 60000, max: 100, message: { error: 'Too many requests.' } });
 
 const EVENT = {
-  name: 'DevFest Hubballi 2026',
-  tagline: 'Building the Agentic Future with Google AI',
-  dates: 'May 10-11, 2026',
-  venue: 'BVB College of Engineering, Hubballi',
-  organizer: 'GDG Hubballi x Google for Developers',
-  halls: [
-    { id: 'main', name: 'Main Auditorium', capacity: 800, floor: 'Ground Floor' },
-    { id: 'hall-a', name: 'Hall A - AI & Cloud', capacity: 400, floor: '1st Floor, East Wing' },
-    { id: 'hall-b', name: 'Hall B - Web & Mobile', capacity: 400, floor: '1st Floor, West Wing' },
-    { id: 'hall-c', name: 'Hall C - Workshops', capacity: 150, floor: '2nd Floor, North Block' },
+  name: 'IPL 2026 — RCB vs MI',
+  tagline: 'AI-Powered Fan Experience at Chinnaswamy Stadium',
+  dates: 'May 10, 2026 · 19:00 IST',
+  venue: 'M. Chinnaswamy Stadium, Bengaluru',
+  organizer: 'Board of Control for Cricket in India (BCCI)',
+  zones: [
+    { id: 'gate-a', name: 'Gate A — North Stand', capacity: 8000, occupancy: 72, floor: 'Ground Level, North Entrance', facilities: 'Food Court F1, Restrooms R1, First Aid Post' },
+    { id: 'gate-b', name: 'Gate B — South Stand', capacity: 8000, occupancy: 38, floor: 'Ground Level, South Entrance', facilities: 'Food Court F2, Restrooms R2, Merchandise Store' },
+    { id: 'gate-c', name: 'Gate C — East Stand', capacity: 6000, occupancy: 91, floor: 'Ground Level, East Entrance', facilities: 'Food Court F3, Restrooms R3, ATM' },
+    { id: 'gate-d', name: 'Gate D — West Stand (VIP)', capacity: 4000, occupancy: 55, floor: 'Ground Level, West Entrance', facilities: 'VIP Lounge, Premium Dining, Restrooms R4' },
+    { id: 'parking', name: 'Parking Complex', capacity: 2500, occupancy: 87, floor: 'Basement + Open Lot', facilities: 'Vehicle Entry/Exit, Security, Overflow via MG Road' },
+  ],
+  queues: [
+    { id: 'q1', location: 'Food Court F1 (Gate A)', type: 'food', waitMinutes: 14, status: 'moderate' },
+    { id: 'q2', location: 'Food Court F2 (Gate B)', type: 'food', waitMinutes: 4, status: 'low' },
+    { id: 'q3', location: 'Food Court F3 (Gate C)', type: 'food', waitMinutes: 28, status: 'high' },
+    { id: 'q4', location: 'Entry Gate A Security', type: 'entry', waitMinutes: 9, status: 'moderate' },
+    { id: 'q5', location: 'Entry Gate B Security', type: 'entry', waitMinutes: 3, status: 'low' },
+    { id: 'q6', location: 'Entry Gate C Security', type: 'entry', waitMinutes: 22, status: 'high' },
+    { id: 'q7', location: 'Entry Gate D (VIP)', type: 'entry', waitMinutes: 2, status: 'low' },
+    { id: 'q8', location: 'Merchandise Store (Gate B)', type: 'merchandise', waitMinutes: 18, status: 'moderate' },
+    { id: 'q9', location: 'Restrooms — North Stand', type: 'restroom', waitMinutes: 6, status: 'moderate' },
+    { id: 'q10', location: 'Restrooms — East Stand', type: 'restroom', waitMinutes: 15, status: 'high' },
   ],
   speakers: [
-    { name: 'Dr. Priya Sharma', role: 'AI Research Lead, Google DeepMind', avatar: 'PS' },
-    { name: 'Rahul Gupta', role: 'Developer Advocate, Google Cloud', avatar: 'RG' },
-    { name: 'Ananya Krishnan', role: 'Senior Engineer, Firebase', avatar: 'AK' },
-    { name: 'Arjun Mehta', role: 'Vertex AI Product Manager', avatar: 'AM' },
-    { name: 'Kavitha Nair', role: 'Flutter GDE, India', avatar: 'KN' },
-    { name: 'Siddharth Rao', role: 'Cloud Architecture, Google', avatar: 'SR' },
+    { name: 'Royal Challengers Bengaluru', role: 'Home Team · Captain: Faf du Plessis', avatar: 'RCB' },
+    { name: 'Mumbai Indians', role: 'Away Team · Captain: Hardik Pandya', avatar: 'MI' },
+    { name: 'Match Officials', role: 'Umpires: Nitin Menon & S. Ravi', avatar: 'OFF' },
+    { name: 'Stadium Security', role: 'Chief: Col. Arvind Kumar · Control Room: Gate A', avatar: 'SEC' },
+    { name: 'Medical Team', role: 'First Aid: Gate A & C · Ambulance on Standby', avatar: 'MED' },
+    { name: 'Fan Helpdesk', role: 'Assistance Desk: Gate B, Ground Floor', avatar: 'HLP' },
   ],
   schedule: [
-    { id: 's1', day: 1, date: '2026-04-25', title: 'Opening Keynote: The Agentic AI Era', speaker: 'Dr. Priya Sharma', hall: 'Main Auditorium', start: '09:00', end: '10:00', track: 'Keynote', description: 'Live demos of Gemini 3 and ADK. Explore how autonomous AI agents are reshaping software development.', calStart: '20260425T033000Z', calEnd: '20260425T043000Z' },
-    { id: 's2', day: 1, date: '2026-04-25', title: 'Building Production Apps with Gemini API', speaker: 'Rahul Gupta', hall: 'Hall A - AI & Cloud', start: '10:30', end: '11:30', track: 'AI & ML', description: 'Deep dive into Gemini 1.5 Flash, function calling, multimodal inputs, and streaming responses.', calStart: '20260425T050000Z', calEnd: '20260425T060000Z' },
-    { id: 's3', day: 1, date: '2026-04-25', title: 'Firebase Real-time Architecture at Scale', speaker: 'Ananya Krishnan', hall: 'Hall B - Web & Mobile', start: '10:30', end: '11:30', track: 'Web & Mobile', description: 'Design patterns for high-traffic Firestore apps. Security rules, offline support, and performance.', calStart: '20260425T050000Z', calEnd: '20260425T060000Z' },
-    { id: 's4', day: 1, date: '2026-04-25', title: 'Vertex AI for Production: MLOps Best Practices', speaker: 'Arjun Mehta', hall: 'Hall A - AI & Cloud', start: '13:00', end: '14:00', track: 'AI & ML', description: 'End-to-end ML pipelines: training, evaluation, deployment, and monitoring with Vertex AI.', calStart: '20260425T073000Z', calEnd: '20260425T083000Z' },
-    { id: 's5', day: 1, date: '2026-04-25', title: 'Flutter for Enterprise: Beyond Todo Apps', speaker: 'Kavitha Nair', hall: 'Hall B - Web & Mobile', start: '13:00', end: '14:00', track: 'Web & Mobile', description: 'State management, accessibility, performance profiling, and platform-specific UI patterns.', calStart: '20260425T073000Z', calEnd: '20260425T083000Z' },
-    { id: 's6', day: 1, date: '2026-04-25', title: 'Google Cloud Run: Serverless at Any Scale', speaker: 'Siddharth Rao', hall: 'Hall A - AI & Cloud', start: '14:30', end: '15:30', track: 'Cloud', description: 'Container-based serverless: cold start optimization, concurrency, traffic splitting, and IAM.', calStart: '20260425T090000Z', calEnd: '20260425T100000Z' },
-    { id: 's7', day: 1, date: '2026-04-25', title: 'Responsible AI: Building Ethically at Scale', speaker: 'Dr. Priya Sharma', hall: 'Main Auditorium', start: '15:30', end: '16:30', track: 'Keynote', description: 'Bias detection, safety layers, explainability, and responsible deployment of generative AI.', calStart: '20260425T100000Z', calEnd: '20260425T110000Z' },
-    { id: 's8', day: 2, date: '2026-04-26', title: 'Hands-on: Building AI Agents with ADK', speaker: 'Ananya Krishnan', hall: 'Hall A - AI & Cloud', start: '09:00', end: '10:30', track: 'AI & ML', description: 'Live workshop: Build a multi-step AI agent using Google Agent Development Kit from scratch.', calStart: '20260426T033000Z', calEnd: '20260426T050000Z' },
-    { id: 's9', day: 2, date: '2026-04-26', title: 'Gemini Multimodal: Vision, Audio & Code', speaker: 'Rahul Gupta', hall: 'Hall C - Workshops', start: '09:00', end: '11:00', track: 'AI & ML', description: 'Workshop: Process images, audio, video, and code with Gemini multimodal capabilities.', calStart: '20260426T033000Z', calEnd: '20260426T053000Z' },
-    { id: 's10', day: 2, date: '2026-04-26', title: 'Geo AI: Maps Platform & Places API', speaker: 'Arjun Mehta', hall: 'Hall B - Web & Mobile', start: '10:30', end: '12:00', track: 'Web & Mobile', description: 'Build location-aware apps: Geocoding, Routes API, Places (new), and Street View integration.', calStart: '20260426T050000Z', calEnd: '20260426T063000Z' },
-    { id: 's11', day: 2, date: '2026-04-26', title: 'Cloud Architecture Patterns for AI Apps', speaker: 'Siddharth Rao', hall: 'Hall A - AI & Cloud', start: '13:00', end: '14:00', track: 'Cloud', description: 'RAG pipelines, vector search with Vertex AI, and cost-optimized architectures for AI-heavy workloads.', calStart: '20260426T073000Z', calEnd: '20260426T083000Z' },
-    { id: 's12', day: 2, date: '2026-04-26', title: 'Closing Keynote: The Future of Build with AI', speaker: 'All Speakers', hall: 'Main Auditorium', start: '15:00', end: '16:00', track: 'Keynote', description: 'Panel: Where is vibe coding taking us? The next 5 years of AI-native development.', calStart: '20260426T093000Z', calEnd: '20260426T103000Z' },
+    { id: 's1', day: 1, date: '2026-05-10', title: 'Gates Open — Early Entry (Beat the Rush)', speaker: 'Stadium Management', hall: 'All Gates', start: '16:00', end: '17:00', track: 'Entry & Exit', description: 'Early entry for all ticket holders. Gate B recommended — lowest crowd density expected. Collect your welcome kit at Gate B merchandise desk.', calStart: '20260510T103000Z', calEnd: '20260510T113000Z' },
+    { id: 's2', day: 1, date: '2026-05-10', title: 'Pre-Match Fan Zone — Live Music & Activities', speaker: 'Entertainment Team', hall: 'Gate B — South Stand', start: '17:00', end: '18:30', track: 'Fan Experience', description: 'Live DJ, fan photo zones, RCB & MI player cutout displays, and merchandise. Food courts fully open — best time to grab food before the match.', calStart: '20260510T113000Z', calEnd: '20260510T130000Z' },
+    { id: 's3', day: 1, date: '2026-05-10', title: 'Team Warm-Up & Ground Activities', speaker: 'Both Teams', hall: 'Ground', start: '17:30', end: '18:45', track: 'Match', description: 'Watch both teams warm up on the ground. Camera zones open for fan photography from designated stands.', calStart: '20260510T120000Z', calEnd: '20260510T131500Z' },
+    { id: 's4', day: 1, date: '2026-05-10', title: 'Opening Ceremony & Toss', speaker: 'Match Officials', hall: 'Ground', start: '18:45', end: '19:00', track: 'Match', description: 'National anthem, player presentations, and coin toss. All attendees requested to be in seats by 18:45.', calStart: '20260510T131500Z', calEnd: '20260510T133000Z' },
+    { id: 's5', day: 1, date: '2026-05-10', title: 'First Innings — T20 Match Begins', speaker: 'RCB vs MI', hall: 'Ground', start: '19:00', end: '21:00', track: 'Match', description: 'First 10 overs: Food courts accessible between overs. Restroom breaks recommended between overs 6–10. Avoid Gate C — high crowd density alert active.', calStart: '20260510T133000Z', calEnd: '20260510T153000Z' },
+    { id: 's6', day: 1, date: '2026-05-10', title: 'Strategic Timeout & Innings Break', speaker: 'Stadium Management', hall: 'All Zones', start: '21:00', end: '21:20', track: 'Break', description: 'Best time to visit food courts — wait times drop 60% during break. Gate B food court (F2) recommended: only 4-min wait. Avoid F3 at Gate C.', calStart: '20260510T153000Z', calEnd: '20260510T155000Z' },
+    { id: 's7', day: 1, date: '2026-05-10', title: 'Second Innings — Chase Begins', speaker: 'RCB vs MI', hall: 'Ground', start: '21:20', end: '23:20', track: 'Match', description: 'Stadium exits open 10 mins before match end. Gate A and Gate B exits recommended for fastest crowd dispersal. Avoid Gate C exit — high congestion expected.', calStart: '20260510T155000Z', calEnd: '20260510T175000Z' },
+    { id: 's8', day: 1, date: '2026-05-10', title: 'Post-Match Presentation & Phased Exit', speaker: 'Stadium Management', hall: 'All Gates', start: '23:20', end: '23:59', track: 'Entry & Exit', description: 'Award ceremony followed by phased exit. North Stand exits first (23:25), South Stand (23:35), East Stand (23:45). Metro running until 01:00 from Cubbon Park Station.', calStart: '20260510T175000Z', calEnd: '20260510T182900Z' },
   ],
   announcements: [
-    { id: 'a1', time: '08:30', text: 'Registration desk is open at the main entrance. Collect your badge and welcome kit!', type: 'info' },
-    { id: 'a2', time: '09:45', text: 'WiFi: Network TechSurge2026 | Password build2026', type: 'success' },
-    { id: 'a3', time: '11:00', text: 'Lunch served at the courtyard 12:00-13:00. Veg and non-veg options available.', type: 'info' },
-    { id: 'a4', time: '12:00', text: 'Hall A: Vertex AI session starts at 13:10 (10 min delay).', type: 'warning' },
-    { id: 'a5', time: '14:00', text: 'Workshop kits for Hall C available outside entrance. Collect before 15:00.', type: 'info' },
+    { id: 'a1', time: '16:00', text: 'Gate B is OPEN with shortest queue — only 3 min wait. Recommended entry point for all general ticket holders.', type: 'success' },
+    { id: 'a2', time: '16:30', text: 'Gate C crowd density at 91% — AVOID. AI routing attendees via Gate A or B. Gate C entry wait: 22 min.', type: 'warning' },
+    { id: 'a3', time: '17:00', text: 'Parking Zones B and C are full. Use Zone A (East side) or take Metro to Cubbon Park Station (2 min walk).', type: 'info' },
+    { id: 'a4', time: '18:00', text: 'Food Court F2 at Gate B: Only 4-min wait! Head there before the match. Food Court F3 (Gate C): 28-min wait — avoid.', type: 'success' },
+    { id: 'a5', time: '19:05', text: 'Crowd advisory: North Stand at 90% capacity. Empty seats available in South Stand — stewards will guide you.', type: 'warning' },
   ],
 };
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', event: EVENT.name, timestamp: new Date().toISOString() }));
 
-app.get('/api/event', apiLimiter, (_req, res) => { const { schedule, ...meta } = EVENT; res.json(meta); });
+app.get('/api/event', apiLimiter, (_req, res) => { const { schedule, queues, ...meta } = EVENT; res.json(meta); });
 
 app.get('/api/schedule', apiLimiter, (req, res) => {
   const { day, track } = req.query;
   let sessions = [...EVENT.schedule];
   if (day !== undefined) {
     const d = parseInt(day, 10);
-    if (isNaN(d) || d < 1 || d > 2) return res.status(400).json({ error: 'day must be 1 or 2.' });
+    if (isNaN(d) || d < 1 || d > 1) return res.status(400).json({ error: 'day must be 1.' });
     sessions = sessions.filter(s => s.day === d);
   }
   if (track) sessions = sessions.filter(s => s.track.toLowerCase() === decodeURIComponent(track).toLowerCase());
   res.json({ event: EVENT.name, sessions, total: sessions.length });
+});
+
+app.get('/api/crowd', apiLimiter, (_req, res) => {
+  res.json({
+    updatedAt: new Date().toISOString(),
+    zones: EVENT.zones.map(z => ({
+      ...z,
+      densityLevel: z.occupancy >= 80 ? 'high' : z.occupancy >= 50 ? 'moderate' : 'low',
+      recommendation: z.occupancy >= 80
+        ? 'Avoid — critically high crowd density'
+        : z.occupancy >= 50
+          ? 'Moderate — manageable crowd'
+          : 'Recommended — low crowd density',
+    })),
+  });
+});
+
+app.get('/api/queues', apiLimiter, (_req, res) => {
+  res.json({ updatedAt: new Date().toISOString(), queues: EVENT.queues });
 });
 
 app.get('/api/announcements', apiLimiter, (_req, res) => res.json({ announcements: EVENT.announcements }));
@@ -102,26 +130,34 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
     return res.json({ reply: "Hi! I'm EventPulse AI running in demo mode. Set GEMINI_API_KEY to enable full AI assistance.\n\nI can answer questions like:\n- Which AI sessions are on Day 1?\n- Where is Hall A?\n- What time does the Gemini workshop start?", demo: true });
   }
 
-  const systemPrompt = `You are EventPulse AI, the official smart assistant for ${EVENT.name} ("${EVENT.tagline}").
+  const systemPrompt = `You are EventPulse AI, the official AI assistant for ${EVENT.name} ("${EVENT.tagline}").
 
 EVENT: ${EVENT.dates} | ${EVENT.venue} | Organised by: ${EVENT.organizer}
 
-HALLS:
-${EVENT.halls.map(h => `  - ${h.name}: capacity ${h.capacity}, ${h.floor}`).join('\n')}
+STADIUM ZONES (with live crowd density):
+${EVENT.zones.map(z => {
+    const level = z.occupancy >= 80 ? 'HIGH DENSITY — AVOID' : z.occupancy >= 50 ? 'Moderate' : 'Low — Recommended';
+    return `  - ${z.name}: ${z.occupancy}% full [${level}] | ${z.facilities}`;
+  }).join('\n')}
 
-SPEAKERS:
+QUEUE WAIT TIMES (live):
+${EVENT.queues.map(q => `  - ${q.location}: ${q.waitMinutes} min wait [${q.status.toUpperCase()}]`).join('\n')}
+
+TEAMS & OFFICIALS:
 ${EVENT.speakers.map(s => `  - ${s.name}: ${s.role}`).join('\n')}
 
-FULL SCHEDULE:
-${EVENT.schedule.map(s => `[Day ${s.day} | ${s.start}-${s.end}] "${s.title}"
-  Speaker: ${s.speaker} | Hall: ${s.hall} | Track: ${s.track}
-  About: ${s.description}`).join('\n\n')}
+MATCH SCHEDULE:
+${EVENT.schedule.map(s => `[${s.start}-${s.end}] "${s.title}"
+  Zone: ${s.hall} | Track: ${s.track}
+  Info: ${s.description}`).join('\n\n')}
 
 RULES:
 - Be friendly, helpful, and concise.
+- Always recommend the least crowded gate or food court when relevant.
+- Proactively warn about high-density zones (Gate C, Food Court F3) and suggest alternatives.
 - Only use data provided above. Do not fabricate information.
 - Use bullet points for lists.
-- For WiFi/food/transport, use common sense for a tech conference.`;
+- For transport: Cubbon Park Metro Station is 2 min walk from Gate B.`;
 
   try {
     const contents = [
@@ -129,13 +165,13 @@ RULES:
       { role: 'user', parts: [{ text: message.trim() }] },
     ];
 
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${apiKey}`, {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemPrompt }] },
         contents,
-        generationConfig: { maxOutputTokens: 512, temperature: 0.4, topP: 0.9 },
+        generationConfig: { maxOutputTokens: 1024, temperature: 0.4, topP: 0.9 },
         safetySettings: [
           { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
           { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
