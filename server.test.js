@@ -17,6 +17,27 @@ describe('GET /api/health', () => {
   });
 });
 
+// ── Firebase Config ─────────────────────────────────────────────────────────
+describe('GET /api/config', () => {
+  it('returns firebase config and feature flags', async () => {
+    const res = await request(app).get('/api/config');
+    expect(res.statusCode).toBe(200);
+    expect(res.body.firebase).toBeDefined();
+    expect(res.body.firebase).toHaveProperty('apiKey');
+    expect(res.body.firebase).toHaveProperty('authDomain');
+    expect(res.body.firebase).toHaveProperty('projectId');
+    expect(res.body.features).toBeDefined();
+    expect(typeof res.body.features.auth).toBe('boolean');
+    expect(typeof res.body.features.analytics).toBe('boolean');
+    expect(typeof res.body.features.translation).toBe('boolean');
+  });
+
+  it('sets Cache-Control header for config', async () => {
+    const res = await request(app).get('/api/config');
+    expect(res.headers['cache-control']).toMatch(/max-age/);
+  });
+});
+
 // ── Event Metadata ──────────────────────────────────────────────────────────
 describe('GET /api/event', () => {
   it('returns event metadata without schedule or queues', async () => {
@@ -50,6 +71,11 @@ describe('GET /api/event', () => {
       expect(z.facilities).toBeDefined();
     });
   });
+
+  it('sets Cache-Control header', async () => {
+    const res = await request(app).get('/api/event');
+    expect(res.headers['cache-control']).toMatch(/max-age/);
+  });
 });
 
 // ── Schedule ────────────────────────────────────────────────────────────────
@@ -81,6 +107,13 @@ describe('GET /api/schedule', () => {
     res.body.sessions.forEach(s => expect(s.track.toLowerCase()).toBe('match'));
   });
 
+  it('returns empty array for non-existent track', async () => {
+    const res = await request(app).get('/api/schedule?track=NonExistent');
+    expect(res.statusCode).toBe(200);
+    expect(res.body.sessions).toHaveLength(0);
+    expect(res.body.total).toBe(0);
+  });
+
   it('returns 400 for invalid day value', async () => {
     const res = await request(app).get('/api/schedule?day=5');
     expect(res.statusCode).toBe(400);
@@ -106,6 +139,11 @@ describe('GET /api/schedule', () => {
       expect(s.calEnd).toBeDefined();
     });
   });
+
+  it('sets Cache-Control header', async () => {
+    const res = await request(app).get('/api/schedule');
+    expect(res.headers['cache-control']).toMatch(/max-age/);
+  });
 });
 
 // ── Crowd Density ───────────────────────────────────────────────────────────
@@ -127,13 +165,24 @@ describe('GET /api/crowd', () => {
     });
   });
 
-  it('correctly classifies high density zones (>=80%)', async () => {
+  it('correctly classifies density levels', async () => {
     const res = await request(app).get('/api/crowd');
     res.body.zones.forEach(z => {
       if (z.occupancy >= 80) expect(z.densityLevel).toBe('high');
       else if (z.occupancy >= 50) expect(z.densityLevel).toBe('moderate');
       else expect(z.densityLevel).toBe('low');
     });
+  });
+
+  it('returns X-Cache header', async () => {
+    const res = await request(app).get('/api/crowd');
+    expect(res.headers['x-cache']).toBeDefined();
+  });
+
+  it('second request hits cache (X-Cache: HIT)', async () => {
+    await request(app).get('/api/crowd'); // warm cache
+    const res = await request(app).get('/api/crowd');
+    expect(res.headers['x-cache']).toBe('HIT');
   });
 });
 
@@ -166,6 +215,11 @@ describe('GET /api/queues', () => {
     expect(types).toContain('restroom');
     expect(types).toContain('merchandise');
   });
+
+  it('returns X-Cache header', async () => {
+    const res = await request(app).get('/api/queues');
+    expect(res.headers['x-cache']).toBeDefined();
+  });
 });
 
 // ── Translation (Google Cloud Translation via Gemini) ───────────────────────
@@ -174,6 +228,22 @@ describe('POST /api/translate', () => {
     const res = await request(app).post('/api/translate').send({});
     expect(res.statusCode).toBe(400);
     expect(res.body.error).toBeDefined();
+  });
+
+  it('returns 400 for unsupported language', async () => {
+    const res = await request(app).post('/api/translate').send({ text: 'Hello', lang: 'Klingon' });
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toMatch(/Unsupported language/);
+  });
+
+  it('returns 400 when text exceeds 1000 characters', async () => {
+    const res = await request(app).post('/api/translate').send({ text: 'a'.repeat(1001), lang: 'Hindi' });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('returns 400 when text is not a string', async () => {
+    const res = await request(app).post('/api/translate').send({ text: 123, lang: 'Hindi' });
+    expect(res.statusCode).toBe(400);
   });
 
   it('returns translated text in demo mode', async () => {
@@ -238,6 +308,25 @@ describe('POST /api/chat', () => {
     expect(res.statusCode).toBe(400);
   });
 
+  it('returns 400 when history items have invalid role', async () => {
+    const res = await request(app)
+      .post('/api/chat')
+      .send({ message: 'Hello', history: [{ role: 'hacker', text: 'hi' }] });
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toMatch(/valid role/);
+  });
+
+  it('accepts valid history entries', async () => {
+    const saved = process.env.GEMINI_API_KEY;
+    delete process.env.GEMINI_API_KEY;
+    const res = await request(app)
+      .post('/api/chat')
+      .send({ message: 'Hello', history: [{ role: 'user', text: 'Hi' }, { role: 'model', text: 'Hello!' }] });
+    if (saved) process.env.GEMINI_API_KEY = saved;
+    expect(res.statusCode).toBe(200);
+    expect(res.body.reply).toBeDefined();
+  });
+
   it('returns a reply in demo mode (no API key)', async () => {
     const saved = process.env.GEMINI_API_KEY;
     delete process.env.GEMINI_API_KEY;
@@ -262,6 +351,18 @@ describe('Security headers', () => {
   it('has X-Frame-Options header', async () => {
     const res = await request(app).get('/api/health');
     expect(res.headers['x-frame-options']).toBeDefined();
+  });
+
+  it('has Content-Security-Policy header', async () => {
+    const res = await request(app).get('/api/health');
+    expect(res.headers['content-security-policy']).toBeDefined();
+  });
+
+  it('responses are gzip compressed', async () => {
+    const res = await request(app)
+      .get('/api/schedule')
+      .set('Accept-Encoding', 'gzip');
+    expect(res.statusCode).toBe(200);
   });
 });
 
