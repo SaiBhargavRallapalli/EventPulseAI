@@ -66,16 +66,17 @@ EventPulse AI is a smart stadium companion web app demonstrated for **IPL 2026 �
 
 ## Google Services Used
 
-| Service | How It's Used |
-|---|---|
-| **Google Gemini (gemini-flash)** | Powers the AI chat assistant with live crowd density and queue context injected into every prompt |
-| **Firebase Admin + Firestore** | Persists crowd density snapshots every 30 seconds for historical analysis and real-time sync |
-| **Google Analytics (gtag.js)** | Tracks page views, tab navigation, and AI chat engagement events |
-| **Google Cloud Translation (via Gemini)** | `/api/translate` endpoint for multilingual stadium announcements (Hindi, Kannada, etc.) |
-| **Google Maps Embed** | Interactive venue map showing M. Chinnaswamy Stadium with zone navigation |
-| **Google Calendar** | Deep-link URLs to add any match day event to attendee's calendar |
-| **Google Fonts** | Syne, Figtree, and JetBrains Mono typefaces loaded via Google Fonts API |
-| **Google Cloud Run** | Hosts the containerised Node.js app — serverless, auto-scaling, with automatic Firebase auth |
+| # | Service | Integration Type | Where in Code |
+|---|---|---|---|
+| 1 | **Google Gemini (gemini-flash)** | REST API — AI chat with live crowd context | `server.js` `/api/chat` |
+| 2 | **Firebase Admin + Firestore** | Server SDK — crowd snapshot persistence every 30s | `server.js` `fluctuateCrowd()` |
+| 3 | **Firebase Authentication** | Client SDK — Google Sign-In for personalized experience | `index.html` `initFirebaseAuth()` |
+| 4 | **Google Analytics (GA4)** | gtag.js — page views, tab navigation, chat engagement | `index.html` `<head>` |
+| 5 | **Google Cloud Translation** | Gemini-powered — multilingual fan announcements (8 languages) | `server.js` `/api/translate` |
+| 6 | **Google Maps Embed** | iframe — interactive venue map with zone navigation | `index.html` Venue tab |
+| 7 | **Google Calendar** | Deep-link URLs — add match events to personal calendar | `index.html` Schedule tab |
+| 8 | **Google Fonts** | CSS API — Syne, Figtree, JetBrains Mono typography | `index.html` `<head>` |
+| 9 | **Google Cloud Run** | Serverless deployment with auto-scaling + default Firebase credentials | `Dockerfile` |
 
 ---
 
@@ -84,7 +85,7 @@ EventPulse AI is a smart stadium companion web app demonstrated for **IPL 2026 �
 ```
 EventPulseAI/
 ├── server.js           # Express backend, API routes, Gemini proxy, crowd/queue data
-├── server.test.js      # Jest + Supertest test suite (29 tests)
+├── server.test.js      # Jest + Supertest test suite (42 tests)
 ├── public/
 │   └── index.html      # Single-page frontend (Vanilla JS + CSS)
 ├── Dockerfile          # Cloud Run deployment
@@ -144,7 +145,7 @@ gcloud run deploy eventpulse-ai \
 npm test
 ```
 
-The test suite covers 29 tests across all endpoints:
+The test suite covers 42 tests across all endpoints:
 - Health check endpoint
 - Event metadata API (zones, speakers)
 - Schedule filtering (by day, track, case-insensitive)
@@ -183,14 +184,15 @@ The test suite covers 29 tests across all endpoints:
 ## Built With
 
 - **Google Antigravity** — AI-assisted development environment
-- **Firebase Admin + Firestore** — Cloud-native data persistence
-- **Google Analytics** — Usage tracking and engagement metrics
-- **Google Gemini (gemini-flash)** — AI chat + multilingual translation
-- **Google Maps + Calendar + Fonts** — Venue, scheduling, and typography
-- **Google Cloud Run** — Serverless auto-scaling deployment
-- Node.js + Express + compression — Backend server
-- Vanilla JS/CSS/HTML — No-framework frontend
-- Jest + Supertest — 29 automated tests
+- **Firebase Admin + Firestore** — Cloud-native data persistence with real-time snapshots
+- **Firebase Authentication** — Google Sign-In for personalized fan experience
+- **Google Analytics (GA4)** — Usage tracking, engagement metrics, and event analytics
+- **Google Gemini (gemini-flash)** — AI chat assistant + multilingual translation
+- **Google Maps + Calendar + Fonts** — Venue navigation, scheduling, and typography
+- **Google Cloud Run** — Serverless auto-scaling deployment with default credentials
+- Node.js + Express + compression — Backend with response caching and gzip
+- Vanilla JS/CSS/HTML — No-framework, single-file frontend
+- Jest + Supertest — Comprehensive automated test suite
 
 ---
 
